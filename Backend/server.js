@@ -68,6 +68,8 @@ function endGame(room_id,win_indexes){
       gamePlayData[room_id]['pot']=0;
       gamePlayData[room_id]['betValue']=2;
       gamePlayData[room_id]['livePlayers']=0;
+      gamePlayData[room_id]['sideShowInProgress']=false;
+      gamePlayData[room_id]['sideShowId']=-1;
 
       for(let i=0;i<users[room_id].length;i++)
       {
@@ -106,6 +108,8 @@ io.on('connection',  (client) => {
             gamePlayData[room_id]['betValue']=2;
             gamePlayData[room_id]['totalPlayers']=1;
             gamePlayData[room_id]['livePlayers']=0;
+            gamePlayData[room_id]['sideShowInProgress']=false;
+            gamePlayData[room_id]['sideShowId']=-1;
             addUserToGameplay(user,room_id);
             // Gameplay add object for particular roomId...
 
@@ -313,10 +317,65 @@ io.on('connection',  (client) => {
                               pidx2=gamePlayData[room_id]['totalPlayers']-1;
                         }
                   }
-                  io.to(gamePlayData[room_id]['user'][pidx2][client_id]).emit('side show requested')
+                  var betValue=gamePlayData[room_id]['betValue'];
+                  if(gamePlayData[room_id]['user'][pidx]['blind']==true){
+                        gamePlayData[room_id]['user'][pidx]['value']-=betValue/2;
+                        gamePlayData[room_id]['pot']+=betValue/2;
+                        gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue/2;
+                  }
+                  else{
+                        gamePlayData[room_id]['user'][pidx]['value']-=betValue;
+                        gamePlayData[room_id]['pot']+=betValue;
+                        gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue;
+                  }
+                  gamePlayData[room_id]['sideShowInProgress']=true;
+                  gamePlayData[room_id]['sideShowId']=pidx;
+                  let destination= users[room_id][pidx2].client_id;
+                  client.to(destination).emit('side show requested')
             }
       })
       // Request side show...
+
+      //Sideshow response...
+      client.on('sideshow response',(room_id,client_id,response) => {
+            if(gamePlayData[room_id]['sideShowInProgress']==true){
+                  var pidx=gamePlayData[room_id]['sideShowId'];
+                  var pidx2=players[client_id];
+                  if(response==1){
+                        let playerOneCards = extractCardData(game_data[room_id]["distribution"][pidx]);
+                        let playerTwoCards = extractCardData(game_data[room_id]["distribution"][pidx2]);
+                        
+                        var winner=getResult(playerOneCards,playerTwoCards);
+                        
+                        if(winner==1){
+                              gamePlayData[room_id]['user'][pidx]['live']=false;
+                              gamePlayData[room_id]['livePlayers']--;
+                              updateTurn(room_id,'side show result:'+pidx+' won');
+                        }
+                        else if(winner==2){
+                              gamePlayData[room_id]['user'][pidx2]['live']=false;
+                              gamePlayData[room_id]['livePlayers']--;
+                              updateTurn(room_id,'side show result:'+pidx2+' won');
+                        }
+                        else{
+                              console.log("No result of side show");
+                              updateTurn(room_id,'side show result:'+' tie');
+                        }
+                        
+                  }
+                  else{
+                        let destination=users[room_id][pidx].client_id;
+                        client.to(destination).emit('side show declined')
+                        updateTurn(room_id,'side show declined');
+                  }
+                  
+            }
+            else{
+                  client.emit("No side show request to respond to");
+            }
+      })
+      //Sideshow response...
+      
     
       // Request show...
       client.on('request show',(room_id,client_id) => {

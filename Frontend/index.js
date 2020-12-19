@@ -366,6 +366,8 @@ var $sideShow = document.createElement('button')
 var $show = document.createElement('button')
 var $fold = document.createElement('button')
 var $new_round = document.createElement('button')
+var $sideShowYes = document.createElement('button')
+var $sideShowNo = document.createElement('button')
 // Gameplay Buttons....
 
 // $sort.disabled = true;
@@ -394,6 +396,8 @@ $raise.textContent = 'Raise'
 $sideShow.textContent = 'Side Show'
 $show.textContent = 'Show'
 $fold.textContent = 'Fold'
+$sideShowYes.textContent = 'Accept'
+$sideShowNo.textContent = 'Decline'
 // TextContent Set of gameplay buttons.....
 
 
@@ -481,6 +485,19 @@ $sideShow.addEventListener('click', function() {
 })
 // request side show...
 
+// side show response...
+$sideShowYes.addEventListener('click',function(){
+        $topbar.removeChild($sideShowYes);
+        $topbar.removeChild($sideShowNo);
+        socket.emit('sideshow response',current_user.room_id,current_user.client_id,1);
+})
+$sideShowNo.addEventListener('click',function(){
+        $topbar.removeChild($sideShowYes);
+        $topbar.removeChild($sideShowNo);
+        socket.emit('sideshow response',current_user.room_id,current_user.client_id,0);
+})
+// side show response...
+
 // request show...
 $show.addEventListener('click', function() {
         socket.emit('request show',current_user.room_id,current_user.client_id);
@@ -526,6 +543,7 @@ socket.on('distribution done', (data,gamePlayDataServer)=>{
         // distribute cards to respective position
         deck.queue(animate_distribution);
 
+        console.log("Distribution")
         // Gameplay addition....
         $topbar.appendChild($bet);
         $topbar.appendChild($raise);
@@ -671,8 +689,18 @@ socket.on('cannot request side show without more than 2 players',()=>{
         console.log("cannot request side show without more than 2 players");
 })
 
-socket.on('side show requested',()=>{
-        console.log('side show requested');
+socket.on('side show requested',(request_client_id)=>{
+        console.log('side show requested'+request_client_id);
+        $topbar.appendChild($sideShowYes);
+        $topbar.appendChild($sideShowNo);
+})
+
+socket.on('No side show request to respond to',()=>{
+        console.log('No side show request to respond to');
+})
+
+socket.on('side show declined',()=>{
+        console.log('side show declined');
 })
 
 socket.on('recieved final show data',(cards1,cards2) => {
