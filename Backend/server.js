@@ -267,7 +267,7 @@ io.on('connection',  (client) => {
                         gamePlayData[room_id]['pot']+=betValue;
                         gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue;
                   }
-                  updateTurn(room_id,'make bet');
+                  updateTurn(room_id,'Make Bet');
             }
       })
       // Make bet...
@@ -291,7 +291,7 @@ io.on('connection',  (client) => {
                         gamePlayData[room_id]['pot']+=betValue;
                         gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue;
                   }
-                  updateTurn(room_id,'raise bet');
+                  updateTurn(room_id,'Raise Bet');
             }
       })
       // Raise bet...
@@ -341,32 +341,40 @@ io.on('connection',  (client) => {
             if(gamePlayData[room_id]['sideShowInProgress']==true){
                   var pidx=gamePlayData[room_id]['sideShowId'];
                   var pidx2=players[client_id];
+                  let move_string = 'Side Show ; Result : '
                   if(response==1){
                         let playerOneCards = extractCardData(game_data[room_id]["distribution"][pidx]);
                         let playerTwoCards = extractCardData(game_data[room_id]["distribution"][pidx2]);
                         
                         var winner=getResult(playerOneCards,playerTwoCards);
                         
-                        if(winner==1){
+                        if(winner==2){
                               gamePlayData[room_id]['user'][pidx]['live']=false;
                               gamePlayData[room_id]['livePlayers']--;
-                              updateTurn(room_id,'side show result:'+pidx+' won');
+                              move_string += users[room_id][pidx2].username;
+                              move_string += ' Won';
+                              move_string = move_string + '$' + pidx;
+                              updateTurn(room_id, move_string);
                         }
-                        else if(winner==2){
+                        else if(winner==1){
                               gamePlayData[room_id]['user'][pidx2]['live']=false;
                               gamePlayData[room_id]['livePlayers']--;
-                              updateTurn(room_id,'side show result:'+pidx2+' won');
+                              move_string += users[room_id][pidx].username;
+                              move_string += ' Won';
+                              move_string = move_string + '$' + pidx2;
+                              updateTurn(room_id, move_string);
                         }
                         else{
                               console.log("No result of side show");
-                              updateTurn(room_id,'side show result:'+' tie');
+                              updateTurn(room_id, move_string + ' Tie');
                         }
-                        
+                        let destination=users[room_id][pidx].client_id;
+                        client.to(destination).emit('side show accepted');
                   }
                   else{
                         let destination=users[room_id][pidx].client_id;
                         client.to(destination).emit('side show declined')
-                        updateTurn(room_id,'side show declined');
+                        updateTurn(room_id,move_string+' Declined by '+users[room_id][pidx2].username);
                   }
                   
             }
@@ -399,7 +407,7 @@ io.on('connection',  (client) => {
                         gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue;
                   }
                   var pidx2;
-                  updateTurn(room_id,'request show');
+                  updateTurn(room_id,'Show');
                   pidx2=gamePlayData[room_id]['turn'];
                   
                   let playerOneCards = extractCardData(game_data[room_id]["distribution"][pidx]);
@@ -448,7 +456,7 @@ io.on('connection',  (client) => {
                   gamePlayData[room_id]['user'][pidx]['live']=false;
                   gamePlayData[room_id]['livePlayers']--;
                   
-                  updateTurn(room_id,'fold');
+                  updateTurn(room_id,'Fold');
                   
                   if(gamePlayData[room_id]['livePlayers']==1){
                         gamePlayData[room_id]['user'][gamePlayData[room_id]['turn']]['value']+=gamePlayData[room_id]['pot'];

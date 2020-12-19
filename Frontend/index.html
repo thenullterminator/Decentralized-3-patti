@@ -7,6 +7,7 @@
       <title>3 - patti</title>
 
       <link rel="icon" href="images/icon.png" type="image/png">
+      <link rel="stylesheet" type="text/css" href="css/winnerdisplay.css">
       <link rel="stylesheet" type="text/css" href="css/lastmove.css">
       <link rel="stylesheet" type="text/css" href="css/scoreboard.css">
       <link rel="stylesheet" type="text/css" href="css/deck.css">
@@ -80,6 +81,10 @@
                   /* width: 500px;
                   height: 500px; */
             }
+
+            #winnerDislplayContainer {
+                  display: none;
+            }
       </style>
 
 </head>
@@ -137,6 +142,12 @@
                                     Join Game
                               </div>
                         </div>
+
+                        <div class="container-login100-form-btn">
+                              <button  type="button" id="connect_metamask_button" class="login100-form-btn" style="background-color:rgb(235, 130, 11);margin-top:20px;">
+                                    Connect Metamask
+                              </button>
+                        </div>
                   </form>
             </div>
       </div>
@@ -162,6 +173,15 @@
                               <span class="label-input100">Room ID</span>
 
                               <input id="room_id_display" class="input100" type="text" name="username"
+                                    placeholder="Enter display name" readonly>
+
+                              <span class="focus-input100"></span>
+                        </div>
+
+                        <div class="wrap-input100 validate-input m-b-26" data-validate="Username is required">
+                              <span class="label-input100">Wallet Ad</span>
+
+                              <input id="wallet_ad_display" class="input100" type="text" name="username"
                                     placeholder="Enter display name" readonly>
 
                               <span class="focus-input100"></span>
@@ -265,16 +285,28 @@
                               <span></span>
                         </div>
                         <table id="datatable" width="100%">
-                              <!-- <thead>
-                                    <tr>
-                                          <th></th>
-                                    </tr>
-                              </thead> -->
                               <tbody id="last_move_list">
                                     <tr><td style="text-align: left; font-size: 18px">Current Bet:<b>&nbsp;2</b></td></tr>
                                     <tr><td style="text-align: left; font-size: 18px">Pot Amount:<b>&nbsp;0</b></td></tr>
                               </tbody>
                         </table>
+                  </div>
+            </div>
+
+
+            <div id="winnerDislplayContainer">
+                  <div id="winnerDisplay">
+                        <div id="winnerDisplayHeader">
+                              <span></span>
+                              <span id="winnerTitle">
+                                    <span style="font-size:24px">
+                                          <br><br> The admin can start a new round by clicking the "new round" button at the bottom.
+                                    <span>
+                              </span>
+                              <!-- <span></span>
+                              <span id="adc">The admin can start a new round by clicking the "new round" button at the bottom.</span>
+                              <span></span> -->
+                        </div>
                   </div>
             </div>
 

@@ -17,6 +17,61 @@ const $chat_messages_display = document.getElementById('chat_messages_display');
 const $chat_input = document.getElementById('chat_input');
 const $score_board_list = document.getElementById('score_board_list');
 const $last_move_list = document.getElementById('last_move_list');
+const $winnerTitle = document.getElementById('winnerTitle');
+const $winnerDislplayContainer = document.getElementById('winnerDislplayContainer');
+
+const $connect_metamask_button = document.getElementById('connect_metamask_button');
+const $wallet_ad_display = document.getElementById('wallet_ad_display');
+
+// Metamask ...................
+var eth_wallet_address = "";
+
+function initialize_metamask() {
+        
+        const isMetaMaskInstalled = () => {
+                const { ethereum } = window;
+                return Boolean(ethereum && ethereum.isMetaMask);
+        };
+
+        const MetamaskClientCheck = () => {
+                
+                if (!isMetaMaskInstalled()) {
+                        
+                        $connect_metamask_button.innerText = 'Click here to install MetaMask!';
+                        
+                } else {
+                        $connect_metamask_button.innerText = 'Connect Metamask';
+                        $connect_metamask_button.onclick = onClickConnectMetamask;
+                        $connect_metamask_button.disabled = false;
+                }
+        };
+        MetamaskClientCheck();
+
+};
+
+async function onClickConnectMetamask  ()  {
+        
+        try {
+                //Will Start the MetaMask Extension
+                await ethereum.request({ method: 'eth_requestAccounts' });
+        } catch (error) {
+                console.error(error);
+        }
+        return false;
+};
+
+async function request_account(){
+        const accounts = await ethereum.request({ method: 'eth_accounts' })
+        eth_wallet_address = accounts[0];
+        $wallet_ad_display.value = eth_wallet_address;
+        console.log("Add: "+eth_wallet_address);
+}
+
+initialize_metamask();
+request_account();
+
+// Metamask ...................
+
 
 var welcome_deck = undefined;
 const JOKER_ID = 54;
@@ -377,7 +432,7 @@ var $sideShowNo = document.createElement('button')
 // $poker.disabled = true;
 // $flip.disabled = true;
 // $distribute.disabled = true;
-$view.disabled = true;
+// $view.disabled = true;
 
 $shuffle.textContent = 'Shuffle'
 $sort.textContent = 'Sort'
@@ -408,7 +463,7 @@ $sideShowNo.textContent = 'Decline'
 // $topbar.appendChild($poker)
 // $topbar.appendChild($sort)
 // $topbar.appendChild($distribute)
-$topbar.appendChild($view)
+// $topbar.appendChild($view)
 
 // Game play Deck ............
 var deck = Deck();
@@ -481,19 +536,54 @@ $raise.addEventListener('click', function() {
 
 // request side show...
 $sideShow.addEventListener('click', function() {
+        removeGameplayButtonsDOM();
         socket.emit('request side show',current_user.room_id,current_user.client_id);
 })
 // request side show...
 
 // side show response...
+function addGamePlayButtonsDOM()
+{
+        if(! $topbar.contains($view))
+                $topbar.appendChild($view);
+        if(! $topbar.contains($bet))
+                $topbar.appendChild($bet);
+        if(! $topbar.contains($raise))
+                $topbar.appendChild($raise);
+        if(! $topbar.contains($sideShow))
+                $topbar.appendChild($sideShow);
+        if(! $topbar.contains($show))
+                $topbar.appendChild($show);
+        if(! $topbar.contains($fold))
+                $topbar.appendChild($fold);
+}
+function removeGameplayButtonsDOM()
+{
+        if($topbar.contains($view))
+                $topbar.removeChild($view);
+        if($topbar.contains($bet))
+                $topbar.removeChild($bet);
+        if($topbar.contains($raise))
+                $topbar.removeChild($raise);
+        if($topbar.contains($sideShow))
+                $topbar.removeChild($sideShow);
+        if($topbar.contains($show))
+                $topbar.removeChild($show);
+        if($topbar.contains($fold))
+                $topbar.removeChild($fold);
+}
 $sideShowYes.addEventListener('click',function(){
         $topbar.removeChild($sideShowYes);
         $topbar.removeChild($sideShowNo);
+        // add buttons removed earlier
+        addGamePlayButtonsDOM();
         socket.emit('sideshow response',current_user.room_id,current_user.client_id,1);
 })
 $sideShowNo.addEventListener('click',function(){
         $topbar.removeChild($sideShowYes);
         $topbar.removeChild($sideShowNo);
+        // add buttons removed earlier
+        addGamePlayButtonsDOM();
         socket.emit('sideshow response',current_user.room_id,current_user.client_id,0);
 })
 // side show response...
@@ -530,6 +620,10 @@ function game_start_animation() {
 // when the server distributes all cards mount the new deck of cards recieved
 socket.on('distribution done', (data,gamePlayDataServer)=>{
         
+        // remove distribute button from previous distribution_turn
+        if(game_data["users"][distribution_turn].username == current_user.name )
+                $topbar.removeChild($distribute);
+
         gamePlayData=gamePlayDataServer;
        
         // invalidate all data
@@ -545,11 +639,7 @@ socket.on('distribution done', (data,gamePlayDataServer)=>{
 
         console.log("Distribution")
         // Gameplay addition....
-        $topbar.appendChild($bet);
-        $topbar.appendChild($raise);
-        $topbar.appendChild($sideShow);
-        $topbar.appendChild($show);
-        $topbar.appendChild($fold);
+        addGamePlayButtonsDOM();
         // Gameplay addition....
 
         highlight_current_player(distribution_turn);
@@ -602,16 +692,6 @@ function animate_distribution() {
         let delay = 0;
         let N = game_data["users"].length;
         
-        function distribution_complete() {
-
-                if(counter2 === 3*N - 1){
-                        console.log("Enable view button")
-                        $view.disabled = false;
-                }
-                console.log(counter2);
-                counter2++;
-        }
-
         for (let j = 0; j < 3; j++) {
                 
                 // card distribution starts from the upper-most card i.e of index 51
@@ -644,8 +724,7 @@ function animate_distribution() {
 
                                 x: Math.cos(rot*Math.PI/180) * radius,
                                 y: Math.sin(rot*Math.PI/180) * radius,
-                                rot: 720 + card_rot,
-                                onComplete: distribution_complete
+                                rot: 720 + card_rot
                         });
                         pidx = (pidx + 1) % N;
                 }while(pidx!=distribution_turn);
@@ -693,6 +772,8 @@ socket.on('side show requested',(request_client_id)=>{
         console.log('side show requested'+request_client_id);
         $topbar.appendChild($sideShowYes);
         $topbar.appendChild($sideShowNo);
+        // remove unnecessary buttons for space
+        removeGameplayButtonsDOM();
 })
 
 socket.on('No side show request to respond to',()=>{
@@ -700,9 +781,13 @@ socket.on('No side show request to respond to',()=>{
 })
 
 socket.on('side show declined',()=>{
+        addGamePlayButtonsDOM();
         console.log('side show declined');
 })
-
+socket.on('side show accepted',()=>{
+        addGamePlayButtonsDOM();
+        console.log('side show accepted');
+})
 socket.on('recieved final show data',(cards1,cards2) => {
         
         for(var j=0;j<3;j++){
@@ -743,11 +828,19 @@ socket.on('turn complete',(gamePlayDataServer,move)=>{
         console.log('previousTurn : ' + previousTurn + "\n currentTurn : " + currentTurn);
         update_turn_ui(previousTurn, currentTurn);
         
+        let split_array = move.split("$");
+        if(split_array.length==2)
+        {
+                move = split_array[0];
+                console.log('folding cards of ' + split_array[1] + ' in side show');
+                deck.queue(fold_cards_animation(parseInt(split_array[1])));
+        }
+
         console.log('Move made : ' + move);
         display_move_ui(previousTurn, move);
         
         // move cards of player previousTurn to deck.
-        if(move == 'fold')
+        if(move == 'Fold')
                 deck.queue(fold_cards_animation(previousTurn));
                 /* 
                 Note that when 2 players are left in the game, and one of them folds
@@ -756,18 +849,30 @@ socket.on('turn complete',(gamePlayDataServer,move)=>{
                 */
 
         // request show data for p1, p2 and flip respective indexes
-        else if(move == 'request show')
+        else if(move == 'Show')
                 socket.emit('request final show data',current_user.room_id,previousTurn,currentTurn);
 
 })
 
 socket.on('game completed',(gamePlayDataServer,win_indexes)=>{
+        var winner_text = ""
+        if (win_indexes.length == 2) {
+                winner_text = "Game Drawn!"
+        } else  {
+                winner_text = game_data["users"][win_indexes[0]].username + " won the game!";
+        }
+
+        winner_text += "<span style=\"font-size:24px\"><br><br> The admin can start a new round by clicking the \"new round\" button at the bottom.<span>"
+
+        winnerTitle.innerHTML = winner_text;
+
+        winnerDislplayContainer.style.display = "block";
 
         gamePlayData = gamePlayDataServer;
         for(let i=0; i<win_indexes.length ; i++)
                 console.log("game won by : " + win_indexes[i]);
         
-        
+        removeGameplayButtonsDOM();
         // NOTE : may need modifications
         // only admin has the permission for starting the next round
         if(current_user.admin)
@@ -815,6 +920,8 @@ function fold_cards_animation(playerIdx)
 {       
         let N = game_data["users"].length;
         console.log("Folding cards " + playerIdx)
+        if(current_user.name == game_data["users"][playerIdx].username)
+                removeGameplayButtonsDOM();
         for(let j = 0; j < 3; j++)
         {
                 let card_idx = 51-(N*j+playerIdx);
@@ -843,17 +950,14 @@ $new_round.addEventListener('click', function () {
 });
 socket.on('start new round', (gamePlayDataServer) => {
 
+        winnerDislplayContainer.style.display = "none";
+
         if(current_user.admin)
                 $topbar.removeChild($new_round);
         
         gamePlayData = gamePlayDataServer;
-        
-        // remove distribute button from previous distribution_turn
-        if(game_data["users"][distribution_turn].username == current_user.name )
-                $topbar.removeChild($distribute);
-        
         distribution_turn = (distribution_turn + 1) % game_data["users"].length;
-        
+        highlight_current_player(distribution_turn);
         // add distribute button for the next user starting the round.
         if(game_data["users"][distribution_turn].username == current_user.name )
                 $topbar.appendChild($distribute);
