@@ -1,64 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Document</title>
-      <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+
+      <link rel="stylesheet" type="text/css" href="css/deck.css">
+      <link rel="stylesheet" type="text/css" href="css/util.css">
+      <link rel="stylesheet" type="text/css" href="css/main.css">
+      <link rel="stylesheet" type="text/css" href="css/chatbox.css" >
+      <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600|Ubuntu+Condensed" rel="stylesheet" type="text/css">
+
+
       <style>
-        #game_start_page{
-          display: none;
-        }
+            #home_page,
+            #start_page {
+                  display: none;
+            }
+
+            .limiter {
+                  width: 100%;
+                  height: 100%;
+                  flex-direction: column;
+                  justify-content: center;
+            }
+
+            .wrap-login100 {
+                  margin: 0 auto;
+            }
+
+            .login100-form {
+                  border-right: 1px solid black;
+                  border-left: 1px solid black;
+                  border-bottom: 1px solid black;
+                  border-top: 0px solid black;
+                  border-radius: 10px;
+            }
+
+            #game_content {
+                  width: 100%;
+                  height: 100%;
+            }
+
+            #table_container {
+                  width: 100%;
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+            }
+
+            #table {
+                  width: 750px;
+                  margin: 0 auto;
+                  /* background-color: red; */
+            }
+
+            #game_content {
+                  display: none;
+            }
       </style>
+
 </head>
+
 <body>
 
-  <div id="start_page">
-
-    <section class="text-gray-700 body-font relative" style="border-radius:1%;border:1px solid black;width:800px;margin:50px auto;">
-          <div class="container px-5 py-24 mx-auto">
-            <div class="flex flex-col text-center w-full mb-12">
-              <h1 class="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">Start Game</h1>
-                </div>
-            <div class="lg:w-1/2 md:w-2/3 mx-auto">
-              <div class="flex flex-wrap -m-2">
+      <!-- Play Area -->
+      <div id="container"></div>
+      <!-- Play Area -->
 
 
-                <div class="p-2 w-full">
-                  <div class="relative">
-                    <label for="name" class="leading-7 text-sm text-gray-600">Name</label>
-                    <input type="text" id="name_input" name="name" class="w-full bg-gray-100 rounded border border-gray-300 focus:border-teal-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
+
+      <!-- Home Page -->
+      <div id="home_page" class="limiter">
+
+            <div class="wrap-login100">
+                  <div class="login100-form-title" style="background-image: url(images/bg.jpg);">
+                        <span class="login100-form-title-1">
+                              Welcome !
+                        </span>
                   </div>
-                </div>
 
-                <button id="create_game_button"  class=" p-2  flex mx-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg">Create Game</button>
-              
+                  <form class="login100-form validate-form">
+                        <div class="wrap-input100 validate-input m-b-26" data-validate="Username is required">
+                              <span class="label-input100">Name</span>
+                              <input id="name_input_create_game" class="input100" type="text" name="username"
+                                    placeholder="Enter display name">
+                              <span class="focus-input100"></span>
+                        </div>
 
-                <div class="p-2 w-full">
-                      <div class="relative">
-                            <label for="name" class="leading-7 text-sm text-gray-600">Code</label>
-                            <input type="text" id="room_id_input" name="gamecode" class="w-full bg-gray-100 rounded border border-gray-300 focus:border-teal-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
-                      </div>
-                </div>
+                        <div class="container-login100-form-btn">
+                              <div id="create_game_div" class="login100-form-btn" style="background-color:red;">
+                                    Create Room
+                              </div>
 
-                <button id="join_game_button" class=" p-2  flex mx-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg">Join Game</button>
-                                
-                </div>
+                        </div>
+
+                        <div class="wrap-input100 validate-input m-b-26" data-validate="Username is required">
+                              <span class="label-input100">Name</span>
+                              <input id="name_input_join_game" class="input100" type="text" name="username"
+                                    placeholder="Enter display name">
+                              <span class="focus-input100"></span>
+                        </div>
+
+
+                        <div class="wrap-input100 validate-input m-b-18" data-validate="Password is required">
+                              <span class="label-input100">Room ID</span>
+                              <input id="room_id_input" class="input100" type="ext" name="pass"
+                                    placeholder="Enter room id">
+                              <span class="focus-input100"></span>
+                        </div>
+
+                        <div class="container-login100-form-btn">
+                              <div id="join_game_div" class="login100-form-btn" style="background-color:black;">
+                                    Join Game
+                              </div>
+                        </div>
+                  </form>
             </div>
-          </div>
-    </section>
-  </div>
+      </div>
+      <!-- Home Page -->
 
-  <div id="game_start_page" style="margin:50px auto;font-size:20px;width:400px;">
-    <p><b>Your game code is:</b> <span id="room_id_display"></span> </p>
-    <p><b>All users:</b> <span id="active_users"></span></p>
-    <p><b>Chat:</b></p>
-    <p><span id="chatbox"></span></p>
-    <p><input id="chat_input" type="text" placeholder="enter message" style="width:200px;"><button style="background:rgb(175, 170, 170);" id="chat_button">send</button></p>
-  </div>
+
+
+
+
+      <!-- Start Page -->
+      <div id="start_page" class="limiter">
+
+            <div class="wrap-login100">
+
+                  <div class="login100-form-title" style="background-image: url(images/bg.jpg);">
+                        <span class="login100-form-title-1">
+                              Welcome !
+                        </span>
+                  </div>
+
+                  <form class="login100-form validate-form">
+                        <div class="wrap-input100 validate-input m-b-26" data-validate="Username is required">
+                              <span class="label-input100">Room ID</span>
+
+                              <input id="room_id_display" class="input100" type="text" name="username"
+                                    placeholder="Enter display name"  readonly>
+
+                              <span class="focus-input100"></span>
+                        </div>
+
+                        <div class="container-login100-form-btn">
+                              Active users
+                        </div>
+
+                        <div class="wrap-input100 validate-input m-b-26">
+                              <span id="active_users">
+                              </span>
+                        </div>
+
+                        <div class="container-login100-form-btn">
+                              <div id="start_game_div" class="login100-form-btn" style="background-color:black;">
+                                    Start Game
+                              </div>
+                        </div>
+                  </form>
+            </div>
+      </div>
+      <!-- Start Page -->
+
+
+      <!-- Game Content -->
+      <div id="game_content">
+
+            <div id='table_container'>
+                  <img id='table' src="images/g1.png" />
+            </div>
+
+            <div id="topbar"></div>
+
+            <div class="wrapper">
+                  <div class="chat-box">
+                        <div class="chat-head">
+                              <h2 style="padding:0px;">Chat Box</h2>
+                              <img src="https://maxcdn.icons8.com/windows10/PNG/16/Arrows/angle_down-16.png"
+                                    title="Expand Arrow" width="16">
+                        </div>
+                        <div class="chat-body" style="display:none;">
+                              <div id="chat_messages_display" class="msg-insert">
+                                    
+                              </div>
+                              <div class="chat-text">
+                                    <textarea id="chat_input" placeholder="Send"
+                                          style="overflow-y:hidden;color:black;font-size:15px"></textarea>
+                              </div>
+                        </div>
+                  </div>
+            </div>
+      </div>
+      <!-- Game Content -->
+
+
 </body>
 
+<script src="./dist/deck.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="index.js"></script>
 
 </html>

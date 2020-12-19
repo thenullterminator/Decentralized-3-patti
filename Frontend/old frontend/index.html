@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+      <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+      <style>
+        #game_start_page{
+          display: none;
+        }
+      </style>
+</head>
+<body>
+
+  <div id="start_page">
+
+    <section class="text-gray-700 body-font relative" style="border-radius:1%;border:1px solid black;width:800px;margin:50px auto;">
+          <div class="container px-5 py-24 mx-auto">
+            <div class="flex flex-col text-center w-full mb-12">
+              <h1 class="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">Start Game</h1>
+                </div>
+            <div class="lg:w-1/2 md:w-2/3 mx-auto">
+              <div class="flex flex-wrap -m-2">
+
+
+                <div class="p-2 w-full">
+                  <div class="relative">
+                    <label for="name" class="leading-7 text-sm text-gray-600">Name</label>
+                    <input type="text" id="name_input" name="name" class="w-full bg-gray-100 rounded border border-gray-300 focus:border-teal-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
+                  </div>
+                </div>
+
+                <button id="create_game_button"  class=" p-2  flex mx-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg">Create Game</button>
+              
+
+                <div class="p-2 w-full">
+                      <div class="relative">
+                            <label for="name" class="leading-7 text-sm text-gray-600">Code</label>
+                            <input type="text" id="room_id_input" name="gamecode" class="w-full bg-gray-100 rounded border border-gray-300 focus:border-teal-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
+                      </div>
+                </div>
+
+                <button id="join_game_button" class=" p-2  flex mx-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg">Join Game</button>
+                                
+                </div>
+            </div>
+          </div>
+    </section>
+  </div>
+
+  <div id="game_start_page" style="margin:50px auto;font-size:20px;width:400px;">
+    <p><b>Your game code is:</b> <span id="room_id_display"></span> </p>
+    <p><b>All users:</b> <span id="active_users"></span></p>
+    <p><b>Chat:</b></p>
+    <p><span id="chatbox"></span></p>
+    <p><input id="chat_input" type="text" placeholder="enter message" style="width:200px;"><button style="background:rgb(175, 170, 170);" id="chat_button">send</button></p>
+  </div>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"></script>
+<script src="index.js"></script>
+
+</html>

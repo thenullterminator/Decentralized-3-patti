@@ -1,0 +1,71 @@
+.chat-box{
+      position: absolute;
+      right: 20px;
+      bottom: 0px;
+      background:#45a173;
+      width: 400px;
+      border-radius: 5px 5px 0px 0px;
+      border: 1px solid black;
+}
+.chat-head{
+      width: inherit;
+      height: 45px;
+      background: #2c3e50;
+      border-radius: 5px 5px 0px 0px;
+      padding-bottom:10px;
+}
+.chat-head h2{
+      color: white;
+      padding: 8px;
+      display: inline-block;
+}
+.chat-head img{
+      cursor: pointer;
+      float: right;
+      width: 25px;
+      margin: 10px;
+}
+.chat-body{
+      height: 400px;
+      width: inherit;
+      overflow: auto;
+      margin-bottom: 45px;
+}
+.chat-text{
+      position: fixed;
+      bottom: 0px;
+      height: 45px;
+      width: inherit;
+}
+.chat-text textarea{
+      width: inherit;
+      height: inherit; 
+      box-sizing: border-box;
+      border: 1px solid #bdc3c7;
+      padding: 10px;
+      resize: none;
+}
+.chat-text textarea:active, .chat-text textarea:focus, .chat-text textarea:hover{
+      border-color: royalblue;
+}
+.msg-send{
+      background: #e2dfdf;
+}
+.msg-receive{
+      background: #969797;
+}
+.msg-send, .msg-receive{
+      width: 350px;
+      height: auto;
+      padding: 5px 5px 5px 10px;
+      margin: 10px auto;
+      border-radius: 3px;
+      line-height: 30px;
+      position: relative;
+      color: black;
+      word-wrap: break-word;
+}
+
+.msg-receive:hover, .msg-send:hover{
+      opacity: .9;
+}     

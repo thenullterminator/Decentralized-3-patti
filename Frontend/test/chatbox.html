@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+      <style>
+    
+      .chat-box{
+            position: absolute;
+            right: 20px;
+            bottom: 0px;
+            background: white;
+            width: 400px;
+            border-radius: 5px 5px 0px 0px;
+            border: 1px solid black;
+      }
+      .chat-head{
+            width: inherit;
+            height: 45px;
+            background: #2c3e50;
+            border-radius: 5px 5px 0px 0px;
+            padding-bottom:10px;
+      }
+      .chat-head h2{
+            color: white;
+            padding: 8px;
+            display: inline-block;
+      }
+      .chat-head img{
+            cursor: pointer;
+            float: right;
+            width: 25px;
+            margin: 10px;
+      }
+      .chat-body{
+            height: 500px;
+            width: inherit;
+            overflow: auto;
+            margin-bottom: 45px;
+      }
+      .chat-text{
+            position: fixed;
+            bottom: 0px;
+            height: 45px;
+            width: inherit;
+      }
+      .chat-text textarea{
+            width: inherit;
+            height: inherit; 
+            box-sizing: border-box;
+            border: 1px solid #bdc3c7;
+            padding: 10px;
+            resize: none;
+      }
+      .chat-text textarea:active, .chat-text textarea:focus, .chat-text textarea:hover{
+            border-color: royalblue;
+      }
+      .msg-send{
+            background: #e2dfdf;
+      }
+      .msg-receive{
+            background: #969797;
+      }
+      .msg-send, .msg-receive{
+            width: 350px;
+            height: auto;
+            padding: 5px 5px 5px 10px;
+            margin: 10px auto;
+            border-radius: 3px;
+            line-height: 30px;
+            position: relative;
+            color: black;
+            word-wrap: break-word;
+      }
+      
+      .msg-receive:hover, .msg-send:hover{
+            opacity: .9;
+      }
+
+
+      </style>
+</head>
+<body>
+
+      <div class="wrapper">
+		<div class="chat-box">
+			<div class="chat-head" >
+				<h2 style="padding:0px;">Chat Box</h2>
+				<img src="https://maxcdn.icons8.com/windows10/PNG/16/Arrows/angle_down-16.png" title="Expand Arrow" width="16">
+			</div>
+			<div class="chat-body">
+				<div class="msg-insert">
+                              <div class="msg-send"> Send message </div>
+                              <div class="msg-receive"> Received message </div>
+                        </div>
+				<div class="chat-text">
+					<textarea placeholder="Send" style="overflow-y:hidden;"></textarea>
+				</div>
+			</div>
+		</div>
+      </div>
+      
+      
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+
+$(function(){
+	var arrow = $('.chat-head img');
+	var textarea = $('.chat-text textarea');
+
+	arrow.on('click', function(){
+		var src = arrow.attr('src');
+
+		$('.chat-body').slideToggle('fast');
+		if(src == 'https://maxcdn.icons8.com/windows10/PNG/16/Arrows/angle_down-16.png'){
+			arrow.attr('src', 'https://maxcdn.icons8.com/windows10/PNG/16/Arrows/angle_up-16.png');
+		}
+		else{
+			arrow.attr('src', 'https://maxcdn.icons8.com/windows10/PNG/16/Arrows/angle_down-16.png');
+		}
+	});
+
+	textarea.keypress(function(event) {
+		var $this = $(this);
+
+		if(event.keyCode == 13){
+			var msg = $this.val();
+			$this.val('');
+			$('.msg-insert').append("<div class='msg-send'>"+msg+"</div>");
+		}
+	});
+
+});
+
+</script>
+</html>
