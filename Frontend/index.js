@@ -19,6 +19,10 @@ const $score_board_list = document.getElementById('score_board_list');
 const $last_move_list = document.getElementById('last_move_list');
 const $winnerTitle = document.getElementById('winnerTitle');
 const $winnerDislplayContainer = document.getElementById('winnerDislplayContainer');
+const $name_required_1 = document.getElementById('name_required_1');
+const $name_required_2 = document.getElementById('name_required_2');
+const $room_id_required = document.getElementById('room_id_required');
+
 const $buy_tokens_div = document.getElementById('buy_tokens_div');
 const $connect_metamask_button = document.getElementById('connect_metamask_button');
 const $wallet_ad_display = document.getElementById('wallet_ad_display');
@@ -104,6 +108,16 @@ var game_chips_contract = web3.eth.contract([
 				"internalType": "uint256",
 				"name": "numberOfTokens",
 				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "clientId",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "viaEvent",
+				"type": "string"
 			}
 		],
 		"name": "transfer",
@@ -173,6 +187,18 @@ var game_chips_contract = web3.eth.contract([
 				"indexed": false,
 				"internalType": "string",
 				"name": "_to",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "_clientId",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "_viaEvent",
 				"type": "string"
 			},
 			{
@@ -449,7 +475,7 @@ var game_chips_contract = web3.eth.contract([
 ]);
 
 // Set the contract address 
-var game_chips = game_chips_contract.at('0xee79ef8c3a49d933511A372d2e2D69c00eF74358');
+var game_chips = game_chips_contract.at('0x681f6aF0c05e1a667FDd336d5dE6f14CFDa2b3fd');
 
 // 1 CHP = 1000000000000 wei.
 
@@ -507,6 +533,12 @@ const current_user = {
 $create_game_div.addEventListener('click', (e) => {
 
         const name = $name_input_create_game.value;
+
+        if (name == "") {
+                name_required_1.style.display = "block"
+                return;
+        }
+
         current_user.name = name;
 
         socket.emit('create new game', name);
@@ -529,7 +561,23 @@ $create_game_div.addEventListener('click', (e) => {
 $join_game_div.addEventListener('click', (e) => {
 
         const name = $name_input_join_game.value;
+
+        if (name == "") {
+                name_required_2.style.display = "block";
+                return;
+        } else {
+                name_required_2.style.display = "none";
+        }
+
         const room_id = $room_id_input.value;
+
+        if (room_id == "") {
+                room_id_required.style.display = "block";
+                return;
+        } else {
+                room_id_required.style.display = "none";
+        }
+
         current_user.name = name;
 
         socket.emit('join game', name, room_id);
@@ -605,6 +653,8 @@ socket.on('new message', (messages) => {
 socket.on('room_id does not exist', () => {
         
         console.log("Invalid room id");
+        room_id_required.innerHTML = "Room ID invalid";
+        room_id_required.style.display = "block";
 });
 
 // Explosion JS ...........................
