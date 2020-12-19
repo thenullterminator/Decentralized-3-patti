@@ -1,7 +1,7 @@
 #winnerDislplayContainer {
     position: fixed;
-    top: 540px;
-    left: 200px;
+    top: 160px;
+    left: 20px;
     /* background-color: red; */
     height:400px;
     width:490px;
@@ -12,7 +12,7 @@
 #winnerDisplay {
     font-family: "Montserrat", sans-serif;
     position: relative;
-    width:490px !important;
+    width:450px !important;
     padding: 4px;
     background-color: rgba(0, 0, 0, 0.3);
     box-shadow: 2px 2px 7px -2px #000000;
@@ -33,7 +33,7 @@
     grid-template-columns: 20px auto 20px;
     justify-items: center;
     /* height: 45px; */
-    width: 500px;
+    width: 450px;
     font-size: 30px;
     align-items: center;
 }

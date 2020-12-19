@@ -862,7 +862,7 @@ socket.on('game completed',(gamePlayDataServer,win_indexes)=>{
                 winner_text = game_data["users"][win_indexes[0]].username + " won the game!";
         }
 
-        winner_text += "<span style=\"font-size:24px\"><br><br> The admin can start a new round by clicking the \"new round\" button at the bottom.<span>"
+        winner_text += "<span style=\"font-size:18px\"><br> The admin can start a new round by clicking the \"new round\" button at the bottom.<span>"
 
         winnerTitle.innerHTML = winner_text;
 

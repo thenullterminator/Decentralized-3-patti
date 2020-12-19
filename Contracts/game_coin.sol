@@ -2,9 +2,10 @@ pragma solidity ^0.5.0;
 
 contract Token{
     
-    string  public name = "Coin";
-    string  public symbol = "C";
-    string  public standard = "Coin v1.0";
+    string  public name = "CHIPS";
+    string  public symbol = "CHP";
+    string  public standard = "CHIPS v1.0";
+    
     uint256 private totalSupply;
     uint256 public tokenPrice;
     uint256 public etherAmount;
@@ -14,10 +15,21 @@ contract Token{
     // address to balance
     mapping (address => uint256) public balanceOf;
     
+    // pot to balance
+    mapping (string => uint256) public balanceOfPot;
+    
+    
     uint256 public count;
-    event Transfer(
+    
+    event Transfered(
         address indexed _from,
         address _to,
+        uint256 _numberOfTokens
+    );
+    
+    event TransferedToPot(
+        address indexed _from,
+        string _to,
         uint256 _numberOfTokens
     );
    
@@ -47,34 +59,35 @@ contract Token{
         return true;
     }
 
-    function transfer(address pot, uint256 numberOfTokens) public returns (bool){
+
+    function transfer(string memory pot, uint256 numberOfTokens) public returns (bool){
         
-        require(balanceOf[msg.sender] > numberOfTokens,"Insufficient balance");
+        require(balanceOf[msg.sender] >= numberOfTokens,"Insufficient balance");
 
         balanceOf[msg.sender] -= numberOfTokens;
     
-        balanceOf[pot] += numberOfTokens;
+        balanceOfPot[pot] += numberOfTokens;
 
-        emit Transfer(msg.sender, pot, numberOfTokens);
+        emit TransferedToPot(msg.sender, pot, numberOfTokens);
 
         return true;
     }
 
     
-    function winnerTransfer(address pot,address to) public returns (bool){
-        uint256 numberOfTokens=balanceOf[pot];
-        balanceOf[pot]-=numberOfTokens;
+    function winnerTransfer(string memory pot,address to) public returns (bool){
+        uint256 numberOfTokens=balanceOfPot[pot];
+        balanceOfPot[pot]-=numberOfTokens;
         balanceOf[to]+=numberOfTokens;
 
         return true;
     }
 
-    function winnerTransferTie(address pot,address to1,address to2) public returns (bool){
-        uint256 numberOfTokens=balanceOf[pot]/2;
-        balanceOf[pot]-=numberOfTokens;
+    function winnerTransferTie(string memory pot,address to1,address to2) public returns (bool){
+        uint256 numberOfTokens=balanceOfPot[pot]/2;
+        balanceOfPot[pot]-=numberOfTokens;
         balanceOf[to1]+=numberOfTokens;
 
-        balanceOf[pot]-=numberOfTokens;
+        balanceOfPot[pot]-=numberOfTokens;
         balanceOf[to2]+=numberOfTokens;
         return true;
     }
@@ -85,6 +98,10 @@ contract Token{
 
     function getBalanceOther(address id) public view returns (uint256) {
         return balanceOf[id];
+    }
+    
+    function getBalancePot(string memory id) public view returns (uint256) {
+        return balanceOfPot[id];
     }
     
     function getContractBalance() public view returns (uint256) {
