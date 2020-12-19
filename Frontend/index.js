@@ -72,6 +72,7 @@ socket.on('start game for all users',(users)=>{
         // game starts with the first user's turn
         game_data["turn"] = 0;
         game_start_animation();
+        draw_avatars();
 });
 
 socket.on('new room id', (room_id,client_id) => {
@@ -168,6 +169,74 @@ function welcome_animation() {
 // Explosion JS ...........................
 
 welcome_animation();
+
+
+function draw_avatars() {
+        var players = [];
+        for (var i = 0; i < game_data["users"].length; i++) {
+                players.push(game_data["users"][i].username);
+        }
+        drawAvatarWheel(players);
+}
+
+function drawAvatarWheel(players) {
+        var startAngle = -Math.PI / (players.length);
+        var arc = Math.PI / (players.length / 2);
+
+        var ctx;
+
+        var center = 500;
+
+        var AVATAR_BASE_URL = "https://avatars.dicebear.com/api/avataaars/";
+
+        var images = {};
+        for (var i = 0; i < players.length; i++) {
+                var uri = AVATAR_BASE_URL + players[i] + ".svg";
+                images[i] = new Image();
+                images[i].src = uri;
+        }
+
+    var canvas = document.getElementById("canvas");
+    if (canvas.getContext) {
+        var imgRadius = 400;
+        var textRadius = imgRadius + 0;
+
+        ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, 1000, 1000);
+
+
+        ctx.font = 'bold 16px Athiti, Arial';
+
+        for (var i = 0; i < players.length; i++) {
+            var angle = startAngle + i * arc + (3 * Math.PI / 180);
+
+            ctx.save();
+
+            ctx.shadowOffsetX = -1;
+            ctx.shadowOffsetY = -1;
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = "rgb(220,220,220)";
+            ctx.fillStyle = "black";
+            ctx.translate(center + Math.cos(angle + arc / 2) * textRadius,
+            center + Math.sin(angle + arc / 2) * textRadius);
+            var text = players[i];
+            ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
+
+            var img = new Image();
+            angle -= 6 * Math.PI / 180;
+            img.setAtX = center + Math.cos(angle + arc / 2) * imgRadius - 30;
+            img.setAtY = center + Math.sin(angle + arc / 2) * imgRadius - 30;
+            img.onload = function () {
+                ctx.drawImage(this, this.setAtX, this.setAtY, 60, 60);
+            };
+            var uri = AVATAR_BASE_URL + text + ".svg";
+            img.src = uri;
+
+            ctx.restore();
+        }
+    }
+}
+
 
 // Chat Box JS..................
 $(function () {
@@ -349,7 +418,7 @@ function animate_distribution() {
 
         var counter2 = 0;
 
-        let outer_radius = 350;
+        let outer_radius = 300;
         let inner_radius = outer_radius - 50;
 
         let delay = 0;
