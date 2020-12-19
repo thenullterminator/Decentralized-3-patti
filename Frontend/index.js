@@ -18,13 +18,14 @@ const $chat_input = document.getElementById('chat_input');
 const $score_board_list = document.getElementById('score_board_list');
 
 var welcome_deck = undefined;
-
+const JOKER_ID = 54;
 
 const socket = io('http://localhost:3000');
 
 const current_user = {
         name: "",
         room_id: "",
+        client_id: "",
         admin:false
 };
 
@@ -37,6 +38,14 @@ $create_game_div.addEventListener('click', (e) => {
         socket.emit('create new game', name);
         current_user.admin = true;
         $start_game_div.style.display='block';
+
+        // options only for the person who created game.
+        // $topbar.appendChild($flip);
+        // $topbar.appendChild($shuffle);
+        // $topbar.appendChild($bysuit);
+        // $topbar.appendChild($fan);
+        // $topbar.appendChild($sort);
+        $topbar.appendChild($distribute);
 });
 
 $join_game_div.addEventListener('click', (e) => {
@@ -53,19 +62,24 @@ $start_game_div.addEventListener('click', (e) => {
         socket.emit('start new game');
 });
 
-socket.on('start game for all users',()=>{
+socket.on('start game for all users',(users)=>{
 
         welcome_deck.unmount($container);
         $start_page.style.display = "none";
         $game_content.style.display = "block";
+        // add list of users to game data for avatar
+        game_data["users"] = users;
+        // game starts with the first user's turn
+        game_data["turn"] = 0;
         game_start_animation();
 });
 
-socket.on('new room id', (room_id) => {
+socket.on('new room id', (room_id,client_id) => {
 
         $room_id_display.value = room_id;
 
         current_user.room_id = room_id;
+        current_user.client_id = client_id;
 
         $home_page.style.display = "none";
         $start_page.style.display = "flex";
@@ -112,7 +126,7 @@ socket.on('new message', (messages) => {
 
 socket.on('room_id does not exist', () => {
         
-        e.log("Invalid room id");
+        console.log("Invalid room id");
 });
 
 // Explosion JS ...........................
@@ -205,6 +219,16 @@ var $fan = document.createElement('button')
 var $poker = document.createElement('button')
 var $flip = document.createElement('button')
 var $distribute = document.createElement('button')
+var $view = document.createElement('button')
+
+// $sort.disabled = true;
+// $shuffle.disabled = true;
+// $bysuit.disabled = true;
+// $fan.disabled = true;
+// $poker.disabled = true;
+// $flip.disabled = true;
+// $distribute.disabled = true;
+$view.disabled = true;
 
 $shuffle.textContent = 'Shuffle'
 $sort.textContent = 'Sort'
@@ -213,14 +237,16 @@ $fan.textContent = 'Fan'
 $poker.textContent = 'Poker'
 $flip.textContent = 'Flip'
 $distribute.textContent = 'Distribute'
+$view.textContent = 'View'
 
-$topbar.appendChild($flip)
-$topbar.appendChild($shuffle)
-$topbar.appendChild($bysuit)
-$topbar.appendChild($fan)
-$topbar.appendChild($poker)
-$topbar.appendChild($sort)
-$topbar.appendChild($distribute)
+// $topbar.appendChild($flip)
+// $topbar.appendChild($shuffle)
+// $topbar.appendChild($bysuit)
+// $topbar.appendChild($fan)
+// $topbar.appendChild($poker)
+// $topbar.appendChild($sort)
+// $topbar.appendChild($distribute)
+$topbar.appendChild($view)
 
 // Game play Deck ............
 var deck = Deck();
@@ -261,10 +287,8 @@ $poker.addEventListener('click', function () {
 
 $distribute.addEventListener('click', function () {
         
-        // deck.flip()
-        // deck.fan()
-        // deck.flip()
-        deck.shuffle()
+        
+        deck.shuffle();
 
         console.log("deck sent =>");
         console.log(deck.cards);
@@ -274,15 +298,19 @@ $distribute.addEventListener('click', function () {
         socket.emit('distribute', deck.cards, sender, room_id);
 })
 
+$view.addEventListener('click', function () {
+        socket.emit('request own card data',current_user.room_id,current_user.client_id);
+})
+
 deck.cards.forEach(function (card, i) {
-        card.enableFlipping();
-        card.enableDragging();
+        // card.enableFlipping();
+        // card.enableDragging();
 });
 
 function game_start_animation() {
         deck.mount($container)
-        deck.intro()
-        deck.sort()
+        deck.intro();
+        deck.sort();
 }
 
 // Game Deck .....................
@@ -290,47 +318,22 @@ function game_start_animation() {
 
 // Card distribution ..............
 
-
-// create temporary deck
-var tempDeck = undefined;
 // when the server distributes all cards mount the new deck of cards recieved
 socket.on('distribution done', (data)=>{
         
-        deck.flip()
-        deck.fan()
-        deck.flip()
-        deck.shuffle() 
-        
-        // create new deck
-        tempDeck = Deck();
-        let cards = data["cards"];
-
-        // copy data
-        for(let i=0; i<deck.cards.length; i++)
-        {
-                tempDeck.cards[i].i = cards[i].i;
-                tempDeck.cards[i].x = cards[i].x;
-                tempDeck.cards[i].y = cards[i].y;
-                tempDeck.cards[i].z = cards[i].z;
-                tempDeck.cards[i].pos = cards[i].pos;
-                tempDeck.cards[i].rank = cards[i].rank;
-                tempDeck.cards[i].suit = cards[i].suit;
-                tempDeck.cards[i].rot = cards[i].rot;
+        if(!current_user.admin){
+                deck.shuffle();
         }
-
-        // mount the new deck to sync changes
-        deck.unmount($container);
-        deck = tempDeck;
-        deck.mount($container);
         
-        // change this later to enable flipping only for the cards
-        // alloted to this particular client
-        deck.cards.forEach(function (card, i) {
-                card.enableFlipping();
-                card.enableDragging();
-        });
 
-        game_data = data;
+        // invalidate all data
+        for(let i=0; i<deck.cards.length; i++){
+                deck.cards[i].i = JOKER_ID;
+                deck.cards[i].pos = -1;
+                deck.cards[i].rank = -1;
+                deck.cards[i].suit = -1;
+        }
+        
         // distribute cards to respective position
         animate_distribution();
 })
@@ -344,25 +347,39 @@ i.e index in users[room_id]
  */
 function animate_distribution() {
 
-        let outer_radius = 400;
+        var counter2 = 0;
+
+        let outer_radius = 350;
         let inner_radius = outer_radius - 50;
+
         let delay = 0;
-        let N = game_data["N"];
+        let N = game_data["users"].length;
         let turn = game_data["turn"];
         
+        let card_idx = 51;
+
+        function distribution_complete() {
+
+                if(counter2 === 3*N - 1){
+                        console.log("Enable view button")
+                        $view.disabled = false;
+                }
+                console.log(counter2);
+                counter2++;
+        }
+
         for (let j = 0; j < 3; j++) {
-                let idx = (turn + 1) % N;
+                
+                // card distribution starts from the upper-most card i.e of index 51
 
-                do {
-                        delay = delay + 1;
-
+                for(let i = 0; i < N; i++) {
+                        
+                        let idx = (turn + i) % N;
                         let rot = idx * 360 / N;
-                        // the index of card which needs to be moved
-                        // console.log(idx + " " + j);
-                        // console.log(game_data);
-                        let card_idx = game_data[idx][j];
                         let radius = 0;
                         let card_rot = 0;
+                        
+                        delay = delay + 1;
 
                         if (j == 0)
                                 radius = outer_radius;
@@ -384,11 +401,36 @@ function animate_distribution() {
 
                                 x: Math.cos(rot*Math.PI/180) * radius,
                                 y: Math.sin(rot*Math.PI/180) * radius,
-                                rot: 720 + card_rot
+                                rot: 720 + card_rot,
+                                onComplete: distribution_complete
                         });
-                        idx = (idx + 1) % N;
 
-                } while (idx != (turn + 1) % N)
+                        card_idx = card_idx - 1;
+                
+                }
         }
 }
 // Card distribution ...............
+
+// View cards .........................
+socket.on("view own cards",(data) => {
+
+        console.log("View request")
+        
+        // modifying cards 
+        var num_cards = data.length;
+        for(var j=0;j<data.length;j++){
+
+                var i = data[j].card_idx;
+                var rank = i% 13 + 1;
+                var suit = i/ 13 | 0;
+
+                deck.cards[data[j].deck_idx].i = i;
+                deck.cards[data[j].deck_idx].rank = rank;
+                deck.cards[data[j].deck_idx].suit = suit;
+                deck.cards[data[j].deck_idx].enableDragging();
+                deck.cards[data[j].deck_idx].setSide('front');
+        }
+
+})
+// View cards .........................

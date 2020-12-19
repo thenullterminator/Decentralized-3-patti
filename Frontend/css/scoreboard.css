@@ -6,6 +6,7 @@
         height:400px;
         width:490px;
         overflow: auto;
+        z-index:-110;
 }
 
 #scoreboard {
