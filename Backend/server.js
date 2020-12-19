@@ -26,6 +26,7 @@ function makeid(length) { // utility function to create a new room id
 let users = {} // all connected users room_id => array of all users in that room.
 let messages = {} // room_id => array of all messages in that room
 let clientRooms = {} // client id => room_id
+let players = {}  // room_id => card data of all players in that room
 
 // setting up even listener
 io.on('connection',  (client) => {
@@ -123,7 +124,51 @@ io.on('connection',  (client) => {
             const room_id=clientRooms[client.id];
             io.to(room_id).emit('start game for all users');
       });
-    
+      
+      client.on('distribute',(cards,sender,room_id)=>{
+            
+            // turn of the player distrbuting card
+            let turn = 0;
+            let N = users[room_id].length;
+            let game_data = {};
+
+            /* 
+                  each player will recieve 3 cards,
+                  
+                  turn+1 player recieves cards = 0, N, 2*N 
+                  turn+2 player cards          = 1, N+1, 2*N+1
+                  and so on ...
+                  
+                  This is stored in card_data as 
+
+                  card_data = 
+                  {
+                        0 : [],
+                        1 : [],
+                        ...
+                        N-1 : [],
+                  }
+            */
+
+            let idx = turn;
+            for (let i = 0; i < N; i++) {
+
+                  idx = (idx + 1) % N;
+                  game_data[idx] = [];
+                  for (let j = 0; j < 3; j++)
+                        game_data[idx].push(51 - (N * j + i));
+            }
+
+            
+            // emit the cards and information about players to all clients
+            game_data["cards"] = cards;
+            game_data["N"] = N;
+            game_data["turn"] = turn;
+            io.to(room_id).emit('distribution done',game_data);
+            
+            // add all information in global DS
+            players[room_id]=game_data;
+      })
 });
 
 http.listen(port, function () { // http server listening at port

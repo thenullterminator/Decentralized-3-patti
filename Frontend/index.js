@@ -15,6 +15,7 @@ const $table_container = document.getElementById('table_container');
 const $topbar = document.getElementById('topbar');
 const $chat_messages_display = document.getElementById('chat_messages_display');
 const $chat_input = document.getElementById('chat_input');
+const $score_board_list = document.getElementById('score_board_list');
 
 var welcome_deck = undefined;
 
@@ -79,6 +80,14 @@ socket.on('new users', (users) => {
         }
 
         $active_users.innerHTML = user_list;
+
+        user_list = "";
+        for (var i = 0; i < users.length; i++) {
+                user_list += '<tr><td>'+(i+1).toString()+'</td><td>'+users[i].username+'</td><td>'+'0'+'</td><td>'+'0'+'</td></tr>';
+        }
+
+
+        $score_board_list.innerHTML = user_list;
 });
 
 socket.on('new message', (messages) => {
@@ -195,6 +204,7 @@ var $bysuit = document.createElement('button')
 var $fan = document.createElement('button')
 var $poker = document.createElement('button')
 var $flip = document.createElement('button')
+var $distribute = document.createElement('button')
 
 $shuffle.textContent = 'Shuffle'
 $sort.textContent = 'Sort'
@@ -202,6 +212,7 @@ $bysuit.textContent = 'By suit'
 $fan.textContent = 'Fan'
 $poker.textContent = 'Poker'
 $flip.textContent = 'Flip'
+$distribute.textContent = 'Distribute'
 
 $topbar.appendChild($flip)
 $topbar.appendChild($shuffle)
@@ -209,9 +220,12 @@ $topbar.appendChild($bysuit)
 $topbar.appendChild($fan)
 $topbar.appendChild($poker)
 $topbar.appendChild($sort)
+$topbar.appendChild($distribute)
 
 // Game play Deck ............
 var deck = Deck();
+// stores all information about card distribution i.e which player has which cards
+var game_data = {};
 // Game play Deck ............
 
 $shuffle.addEventListener('click', function () {
@@ -245,6 +259,21 @@ $poker.addEventListener('click', function () {
         deck.poker()
 })
 
+$distribute.addEventListener('click', function () {
+        
+        // deck.flip()
+        // deck.fan()
+        // deck.flip()
+        deck.shuffle()
+
+        console.log("deck sent =>");
+        console.log(deck.cards);
+
+        const room_id = current_user.room_id;
+        const sender = current_user.name;
+        socket.emit('distribute', deck.cards, sender, room_id);
+})
+
 deck.cards.forEach(function (card, i) {
         card.enableFlipping();
         card.enableDragging();
@@ -257,3 +286,109 @@ function game_start_animation() {
 }
 
 // Game Deck .....................
+
+
+// Card distribution ..............
+
+
+// create temporary deck
+var tempDeck = undefined;
+// when the server distributes all cards mount the new deck of cards recieved
+socket.on('distribution done', (data)=>{
+        
+        deck.flip()
+        deck.fan()
+        deck.flip()
+        deck.shuffle() 
+        
+        // create new deck
+        tempDeck = Deck();
+        let cards = data["cards"];
+
+        // copy data
+        for(let i=0; i<deck.cards.length; i++)
+        {
+                tempDeck.cards[i].i = cards[i].i;
+                tempDeck.cards[i].x = cards[i].x;
+                tempDeck.cards[i].y = cards[i].y;
+                tempDeck.cards[i].z = cards[i].z;
+                tempDeck.cards[i].pos = cards[i].pos;
+                tempDeck.cards[i].rank = cards[i].rank;
+                tempDeck.cards[i].suit = cards[i].suit;
+                tempDeck.cards[i].rot = cards[i].rot;
+        }
+
+        // mount the new deck to sync changes
+        deck.unmount($container);
+        deck = tempDeck;
+        deck.mount($container);
+        
+        // change this later to enable flipping only for the cards
+        // alloted to this particular client
+        deck.cards.forEach(function (card, i) {
+                card.enableFlipping();
+                card.enableDragging();
+        });
+
+        game_data = data;
+        // distribute cards to respective position
+        animate_distribution();
+})
+
+/*
+the player with index "idx" is sent to the position at an angle of 
+theta = idx * 360 / N;
+where N is number of players
+idx = index in the stored array of server 
+i.e index in users[room_id]
+ */
+function animate_distribution() {
+
+        let outer_radius = 400;
+        let inner_radius = outer_radius - 50;
+        let delay = 0;
+        let N = game_data["N"];
+        let turn = game_data["turn"];
+        
+        for (let j = 0; j < 3; j++) {
+                let idx = (turn + 1) % N;
+
+                do {
+                        delay = delay + 1;
+
+                        let rot = idx * 360 / N;
+                        // the index of card which needs to be moved
+                        // console.log(idx + " " + j);
+                        // console.log(game_data);
+                        let card_idx = game_data[idx][j];
+                        let radius = 0;
+                        let card_rot = 0;
+
+                        if (j == 0)
+                                radius = outer_radius;
+                        else
+                                radius = inner_radius;
+
+                        if (j == 1)
+                                card_rot = +5;
+                        else if (j == 2)
+                                card_rot = -5;
+
+                        rot = rot + card_rot;
+
+                        deck.cards[card_idx].animateTo({
+
+                                delay: 500 * delay, // wait 1 second + i * 2 ms
+                                duration: 500,
+                                ease: 'quartOut',
+
+                                x: Math.cos(rot*Math.PI/180) * radius,
+                                y: Math.sin(rot*Math.PI/180) * radius,
+                                rot: 720 + card_rot
+                        });
+                        idx = (idx + 1) % N;
+
+                } while (idx != (turn + 1) % N)
+        }
+}
+// Card distribution ...............

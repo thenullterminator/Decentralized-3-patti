@@ -4,16 +4,24 @@
 <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Document</title>
+      <title>3 - patti</title>
 
+      <link rel="icon" href="images/icon.png" type="image/png">
+      <link rel="stylesheet" type="text/css" href="css/scoreboard.css">
       <link rel="stylesheet" type="text/css" href="css/deck.css">
       <link rel="stylesheet" type="text/css" href="css/util.css">
       <link rel="stylesheet" type="text/css" href="css/main.css">
-      <link rel="stylesheet" type="text/css" href="css/chatbox.css" >
-      <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600|Ubuntu+Condensed" rel="stylesheet" type="text/css">
+      <link rel="stylesheet" type="text/css" href="css/chatbox.css">
+      <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600|Ubuntu+Condensed" rel="stylesheet"
+            type="text/css">
 
 
       <style>
+            @import url('https://fonts.googleapis.com/css2?family=Athiti:wght@400;500&display=swap');
+            *{
+                  font-family: 'Athiti', sans-serif !important;
+            }
+
             #home_page,
             #start_page {
                   display: none;
@@ -142,7 +150,7 @@
                               <span class="label-input100">Room ID</span>
 
                               <input id="room_id_display" class="input100" type="text" name="username"
-                                    placeholder="Enter display name"  readonly>
+                                    placeholder="Enter display name" readonly>
 
                               <span class="focus-input100"></span>
                         </div>
@@ -157,7 +165,8 @@
                         </div>
 
                         <div class="container-login100-form-btn">
-                              <div id="start_game_div" class="login100-form-btn" style="background-color:black;padding-top:14px;padding-left:30px;display:none;">
+                              <div id="start_game_div" class="login100-form-btn"
+                                    style="background-color:black;padding-top:14px;padding-left:30px;display:none;">
                                     Start Game
                               </div>
                         </div>
@@ -172,13 +181,17 @@
 
             <!-- table -->
             <div id='table_container'>
-                  <img id='table' src="images/g1.png" />
+                  <img id='table' src="images/game_board.png" />
             </div>
             <!-- table -->
+
+
 
             <!-- All options -->
             <div id="topbar"></div>
             <!-- All options -->
+
+
 
             <!-- Chat box -->
             <div class="wrapper">
@@ -190,7 +203,7 @@
                         </div>
                         <div class="chat-body" style="display:none;">
 
-                              <div id="chat_messages_display" class="msg-insert" ></div>
+                              <div id="chat_messages_display" class="msg-insert"></div>
 
                               <div class="chat-text">
                                     <textarea id="chat_input" placeholder="Send"
@@ -199,7 +212,32 @@
                         </div>
                   </div>
             </div>
-             <!-- Chat box -->
+            <!-- Chat box -->
+
+
+            <!-- score board -->
+            <div id="scoreboardContainer">
+                  <div id="scoreboard">
+                        <div id="scoreboardHeader">
+                              <span></span>
+                              <span id="scoreboardTitle">SCORE BOARD</span>
+                        </div>
+                        <table id="datatable" width="100%">
+                              <thead>
+                                    <tr>
+                                          <th>#</th>
+                                          <th>Player</th>
+                                          <th>Current Earnings</th>
+                                          <th>Total Earnings</th>
+                                    </tr>
+                              </thead>
+                              <tbody id="score_board_list"></tbody>
+                        </table>
+                  </div>
+            </div>
+            <!-- score board -->
+
+
       </div>
       <!-- Game Content -->
 
