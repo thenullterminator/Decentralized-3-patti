@@ -402,8 +402,6 @@ var game_chips_contract = web3.eth.contract([
 
 // Set the contrcat address 
 var game_chips = game_chips_contract.at('0xee79ef8c3a49d933511A372d2e2D69c00eF74358');
-console.log(game_chips_contract)
-console.log(game_chips);
 
 // 1 CHP = 1000000000000 wei.
 
@@ -424,6 +422,9 @@ async function request_account(){
         });
         
 
+        // game_chips.transfer("ADDi",10,(e,r)=>{
+
+        // })
         
 }
 
