@@ -7,6 +7,7 @@
       <title>3 - patti</title>
 
       <link rel="icon" href="images/icon.png" type="image/png">
+      <link rel="stylesheet" type="text/css" href="css/lastmove.css">
       <link rel="stylesheet" type="text/css" href="css/scoreboard.css">
       <link rel="stylesheet" type="text/css" href="css/deck.css">
       <link rel="stylesheet" type="text/css" href="css/util.css">
@@ -246,8 +247,8 @@
                                     <tr>
                                           <th>#</th>
                                           <th>Player</th>
-                                          <th>Current Earnings</th>
-                                          <th>Total Earnings</th>
+                                          <th>Current Bet</th>
+                                          <th>Balance</th>
                                     </tr>
                               </thead>
                               <tbody id="score_board_list"></tbody>
@@ -256,6 +257,26 @@
             </div>
             <!-- score board -->
 
+            <div id="lastMoveContainer">
+                  <div id="lastMove">
+                        <div id="lastMoveHeader">
+                              <span></span>
+                              <span id="scoreboardTitle">IMPT STATS</span>
+                              <span></span>
+                        </div>
+                        <table id="datatable" width="100%">
+                              <!-- <thead>
+                                    <tr>
+                                          <th></th>
+                                    </tr>
+                              </thead> -->
+                              <tbody id="last_move_list">
+                                    <tr><td style="text-align: left; font-size: 18px">Current Bet:<b>&nbsp;2</b></td></tr>
+                                    <tr><td style="text-align: left; font-size: 18px">Pot Amount:<b>&nbsp;0</b></td></tr>
+                              </tbody>
+                        </table>
+                  </div>
+            </div>
 
       </div>
       <!-- Game Content -->

@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express(); // creating an express application
 const cors = require('cors');
+const e = require('cors');
 app.use(cors()); // setting up cors for app
 
 const port = process.env.PORT || 3000; // specifying port
@@ -28,6 +29,52 @@ let messages = {} // room_id => array of all messages in that room
 let clientRooms = {} // client id => room_id
 let players = {}  // client_id(unique across rooms) => index of user in room
 let game_data = {} // game_id => all infromation about that particular room
+let gamePlayData={} // game_id => all information about gameplay of that particular room
+
+
+// Gameplay utilities...
+function addUserToGameplay(user,room_id){ // utility function to add user to gameplay
+      var cur=gamePlayData[room_id]['totalPlayers']-1;
+      gamePlayData[room_id]['user'][cur]={};
+      gamePlayData[room_id]['user'][cur]=user;
+      gamePlayData[room_id]['user'][cur]['value']=100
+      gamePlayData[room_id]['user'][cur]['blind']=true
+      gamePlayData[room_id]['user'][cur]['live']=true
+      gamePlayData[room_id]['user'][cur]['currentBet']=0
+}
+
+function updateTurn(room_id,move){
+      if(gamePlayData[room_id]['totalPlayers']>1){
+            gamePlayData[room_id]['turn']++;
+            gamePlayData[room_id]['turn']%=gamePlayData[room_id]['totalPlayers'];
+
+            while(gamePlayData[room_id]['user'][gamePlayData[room_id]['turn']]['live']!=true){
+                  if(gamePlayData[room_id]['turn']==0){
+                        gamePlayData[room_id]['betValue']*=2;
+                  }
+                  gamePlayData[room_id]['turn']++;
+                  gamePlayData[room_id]['turn']%=gamePlayData[room_id]['totalPlayers'];
+            }
+      }
+      io.to(room_id).emit('turn complete',gamePlayData[room_id],move);
+}
+
+function endGame(room_id,win_indexes){
+      
+      gamePlayData[room_id]['turn']=-1;
+      gamePlayData[room_id]['pot']=0;
+      gamePlayData[room_id]['betValue']=2;
+      gamePlayData[room_id]['livePlayers']=0;
+
+      for(var i=0;i<gamePlayData[room_id]['user'].length;i++){
+            gamePlayData[room_id]['user'][i]['blind']=true;
+            gamePlayData[room_id]['user'][i]['live']=true;
+            gamePlayData[room_id]['user'][i]['currentBet']=0;
+      }
+
+      io.to(room_id).emit('game completed',gamePlayData[room_id],win_indexes);
+}
+// Gameplay utilities...
 
 // setting up even listener
 io.on('connection',  (client) => {
@@ -46,7 +93,18 @@ io.on('connection',  (client) => {
 
             users[room_id]=[];
             messages[room_id]=[];
-            
+
+            // Gameplay add object for particular roomId...
+            gamePlayData[room_id]={};
+            gamePlayData[room_id]['user']={};
+            gamePlayData[room_id]['turn']=-1;
+            gamePlayData[room_id]['pot']=0;
+            gamePlayData[room_id]['betValue']=2;
+            gamePlayData[room_id]['totalPlayers']=1;
+            gamePlayData[room_id]['livePlayers']=0;
+            addUserToGameplay(user,room_id);
+            // Gameplay add object for particular roomId...
+
             users[room_id].push(user);
             clientRooms[client.id] = room_id;
 
@@ -76,6 +134,11 @@ io.on('connection',  (client) => {
             
             users[room_id].push(user);
             clientRooms[client.id] = room_id;
+
+            // Update Gameplay data...
+            gamePlayData[room_id]['totalPlayers']++;
+            addUserToGameplay(user,room_id);
+            // Update Gameplay data...
 
             client.emit('new room id',room_id,client.id);
             client.join(room_id);
@@ -134,6 +197,7 @@ io.on('connection',  (client) => {
             io.to(room_id).emit('start game for all users',users[room_id]);
       });
       
+      // NOTE : Needs updation for next round.
       client.on('distribute',(cards,sender,room_id)=>{
             
             // turn of the player distrbuting card
@@ -183,14 +247,179 @@ io.on('connection',  (client) => {
             
             console.log("game_data at server");
             console.log(game_data);
+
+            // Gameplay Update...
+            gamePlayData[room_id]['livePlayers']=gamePlayData[room_id]['totalPlayers']
+            gamePlayData[room_id]['turn']=0;
+            // Gameplay Update...
             
-            io.to(room_id).emit('distribution done',game_data);
+            io.to(room_id).emit('distribution done',game_data,gamePlayData[room_id]);
       })
 
       client.on('request own card data',(room_id,client_id) => {
             let pidx = players[client_id];
+            gamePlayData[room_id]['user'][pidx]['blind']=false;
             client.emit("view own cards",game_data[room_id]["distribution"][pidx]);
       })
+
+      // Gameplay options....
+      // Make bet...
+      client.on('make bet',(room_id,client_id) => {
+            let pidx = players[client_id];
+            if (pidx!=gamePlayData[room_id]['turn']){
+                  client.emit("its not your turn");
+            }
+            else{
+                  var betValue=gamePlayData[room_id]['betValue'];
+                  if(gamePlayData[room_id]['user'][pidx]['blind']==true){
+                        gamePlayData[room_id]['user'][pidx]['value']-=betValue/2;
+                        gamePlayData[room_id]['pot']+=betValue/2;
+                        gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue/2;
+                  }
+                  else{
+                        gamePlayData[room_id]['user'][pidx]['value']-=betValue;
+                        gamePlayData[room_id]['pot']+=betValue;
+                        gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue;
+                  }
+                  updateTurn(room_id,'make bet');
+            }
+      })
+      // Make bet...
+    
+      // Raise bet...
+      client.on('raise bet',(room_id,client_id) => {
+            let pidx = players[client_id];
+            if (pidx!=gamePlayData[room_id]['turn']){
+                  client.emit("its not your turn");
+            }
+            else{
+                  gamePlayData[room_id]['betValue']*=2;
+                  var betValue=gamePlayData[room_id]['betValue'];
+                  if(gamePlayData[room_id]['user'][pidx]['blind']==true){
+                        gamePlayData[room_id]['user'][pidx]['value']-=betValue/2;
+                        gamePlayData[room_id]['pot']+=betValue/2;
+                        gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue/2;
+                  }
+                  else{
+                        gamePlayData[room_id]['user'][pidx]['value']-=betValue;
+                        gamePlayData[room_id]['pot']+=betValue;
+                        gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue;
+                  }
+                  updateTurn(room_id,'raise bet');
+            }
+      })
+      // Raise bet...
+    
+      // Request side show...
+      client.on('request side show',(room_id,client_id) => {
+            let pidx = players[client_id];
+            if (pidx!=gamePlayData[room_id]['turn']){
+                  client.emit("its not your turn");
+            }
+            else if(gamePlayData[room_id]['livePlayers']<=2){
+                  client.emit("cannot request side show without more than 2 players");
+            }
+            else{
+                  let pidx2=pidx;
+                  pidx2--;
+                  if(pidx2==-1){
+                        pidx2=gamePlayData[room_id]['totalPlayers']-1;
+                  }
+                  while(gamePlayData[room_id]['user'][pidx2]['live']!=true){
+                        pidx2--;
+                        if(pidx2==-1){
+                              pidx2=gamePlayData[room_id]['totalPlayers']-1;
+                        }
+                  }
+                  io.to(gamePlayData[room_id]['user'][pidx2][client_id]).emit('side show requested')
+            }
+      })
+      // Request side show...
+    
+      // Request show...
+      client.on('request show',(room_id,client_id) => {
+            let pidx = players[client_id];
+            if (pidx!=gamePlayData[room_id]['turn']){
+                  client.emit("its not your turn");
+            }
+            else if(gamePlayData[room_id]['livePlayers']!=2){
+                  client.emit("cannot show until exactly 2 players left");
+            }
+            else{
+                  var betValue=gamePlayData[room_id]['betValue'];
+                  if(gamePlayData[room_id]['user'][pidx]['blind']==true){
+                        gamePlayData[room_id]['user'][pidx]['value']-=betValue/2;
+                        gamePlayData[room_id]['pot']+=betValue/2;
+                        gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue/2;
+                  }
+                  else{
+                        gamePlayData[room_id]['user'][pidx]['value']-=betValue;
+                        gamePlayData[room_id]['pot']+=betValue;
+                        gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue/2;
+                  }
+                  var pidx2;
+                  updateTurn(room_id,'request show');
+                  pidx2=gamePlayData[room_id]['turn'];
+                  
+                  let playerOneCards = extractCardData(game_data[room_id]["distribution"][pidx]);
+                  let playerTwoCards = extractCardData(game_data[room_id]["distribution"][pidx2]);
+                  
+                  console.log("playerOneCards = " + playerOneCards);
+                  console.log("playerTwoCards = " + playerTwoCards);
+                  
+                  var winner=getResult(playerOneCards,playerTwoCards);
+
+                  // list of indexes who won the game
+                  let win_indexes = [];
+                  if(winner==1){
+                        gamePlayData[room_id]['user'][pidx]['value']+=gamePlayData[room_id]['pot'];
+                        win_indexes.push(pidx);
+                  }
+                  else if(winner==2){
+                        gamePlayData[room_id]['user'][pidx2]['value']+=gamePlayData[room_id]['pot'];
+                        win_indexes.push(pidx2);
+                  }
+                  else{
+                        gamePlayData[room_id]['user'][pidx]['value']+=gamePlayData[room_id]['pot']/2;
+                        gamePlayData[room_id]['user'][pidx2]['value']+=gamePlayData[room_id]['pot']/2; 
+                        console.log("2 players winning case");
+                        win_indexes.push(pidx);
+                        win_indexes.push(pidx2);
+                  }
+                  endGame(room_id,win_indexes);
+            }
+      })
+      client.on('request final show data',(room_id,pidx,pidx2) => {
+            io.to(room_id).emit(
+                              'recieved final show data',
+                              game_data[room_id]["distribution"][pidx],
+                              game_data[room_id]["distribution"][pidx2]);
+      })
+      // Request show...
+    
+      // Fold...
+      client.on('fold',(room_id,client_id) => {
+            let pidx = players[client_id];
+            if (pidx!=gamePlayData[room_id]['turn']){
+                  client.emit("its not your turn");
+            }
+            else{
+                  gamePlayData[room_id]['user'][pidx]['live']=false;
+                  gamePlayData[room_id]['livePlayers']--;
+                  
+                  updateTurn(room_id,'fold');
+                  
+                  if(gamePlayData[room_id]['livePlayers']==1){
+                        gamePlayData[room_id]['user'][gamePlayData[room_id]['turn']]['value']+=gamePlayData[room_id]['pot'];
+                        
+                        let win_indexes = [];
+                        win_indexes.push(gamePlayData[room_id]['turn']);
+                        endGame(room_id,win_indexes);
+                  }
+            }
+      })
+      // Fold...
+      // Gameplay options....
 });
 
 http.listen(port, function () { // http server listening at port
@@ -200,7 +429,13 @@ http.listen(port, function () { // http server listening at port
 
 
 // Get result of game
-
+function extractCardData(cardData)
+{
+      let arr = [];
+      for(let j = 0; j < 3; j++)
+            arr.push(cardData[j].card_idx);
+      return arr;
+}
 // playerOneCards and playerTwoCards are arrays containing 'i' values of the cards
 function getResult(playerOneCards, playerTwoCards) {
       let playerOneCardsRank = getRank(playerOneCards);

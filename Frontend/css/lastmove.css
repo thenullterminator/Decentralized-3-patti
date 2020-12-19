@@ -1,0 +1,51 @@
+#lastMoveContainer {
+    position: fixed;
+    top: 14px;
+    left: 20px;
+    /* background-color: red; */
+    height:400px;
+    width:490px;
+    overflow: auto;
+    z-index:-110;
+}
+
+#lastMove {
+    font-family: "Montserrat", sans-serif;
+    position: relative;
+    width:450px !important;
+    padding: 4px;
+    background-color: rgba(0, 0, 0, 0.3);
+    box-shadow: 2px 2px 7px -2px #000000;
+    color: #fff;
+    font-size: 14px;
+    line-height: 0.8;
+    text-align: center;
+    border-radius: 10px;
+    pointer-events: auto;
+    user-select: none;
+    overflow: hidden;
+    /* 	cursor: move; */
+    z-index: 999;
+}
+
+#lastMoveHeader {
+    display: grid;
+    grid-template-columns: 90px auto 90px;
+    justify-items: center;
+    height: 45px;
+    font-size: 18px;
+    align-items: center;
+}
+
+#previousPlayerText {
+    display: grid;
+    /* grid-template-columns: 90px auto 90px; */
+    justify-items: left;
+    height: 45px;
+    font-size: 18px;
+    align-items: center;
+}
+
+#previousPlayerName {
+    display: inline;
+}
