@@ -20,7 +20,7 @@ const $last_move_list = document.getElementById('last_move_list');
 
 var welcome_deck = undefined;
 const JOKER_ID = 54;
-
+var distribution_turn = 0;
 const socket = io('http://localhost:3000');
 
 const current_user = {
@@ -46,6 +46,10 @@ $create_game_div.addEventListener('click', (e) => {
         // $topbar.appendChild($bysuit);
         // $topbar.appendChild($fan);
         // $topbar.appendChild($sort);
+        /**
+         * admin is the first user to start the game, so admin is the only one who has distribute button
+         * enabled, this distribute button is also toggled when starting next round.
+         */
         $topbar.appendChild($distribute);
 });
 
@@ -70,10 +74,9 @@ socket.on('start game for all users',(users)=>{
         $game_content.style.display = "block";
         // add list of users to game data for avatar
         game_data["users"] = users;
-        // game starts with the first user's turn
-        game_data["turn"] = 0;
         game_start_animation();
         draw_avatars();
+        highlight_current_player(0);
 });
 
 socket.on('new room id', (room_id,client_id) => {
@@ -354,6 +357,7 @@ var $poker = document.createElement('button')
 var $flip = document.createElement('button')
 var $distribute = document.createElement('button')
 var $view = document.createElement('button')
+var $new_round = document.createElement('button')
 
 // Gameplay Buttons....
 var $bet = document.createElement('button')
@@ -361,6 +365,7 @@ var $raise = document.createElement('button')
 var $sideShow = document.createElement('button')
 var $show = document.createElement('button')
 var $fold = document.createElement('button')
+var $new_round = document.createElement('button')
 // Gameplay Buttons....
 
 // $sort.disabled = true;
@@ -380,6 +385,7 @@ $poker.textContent = 'Poker'
 $flip.textContent = 'Flip'
 $distribute.textContent = 'Distribute'
 $view.textContent = 'View'
+$new_round.textContent = 'New Round'
 
 
 // TextContent Set of gameplay buttons.....
@@ -528,7 +534,7 @@ socket.on('distribution done', (data,gamePlayDataServer)=>{
         $topbar.appendChild($fold);
         // Gameplay addition....
 
-        highlight_current_player(0);
+        highlight_current_player(distribution_turn);
         update_score_board(gamePlayData);
 })
 
@@ -577,10 +583,7 @@ function animate_distribution() {
 
         let delay = 0;
         let N = game_data["users"].length;
-        let turn = game_data["turn"];
         
-        let card_idx = 51;
-
         function distribution_complete() {
 
                 if(counter2 === 3*N - 1){
@@ -594,14 +597,13 @@ function animate_distribution() {
         for (let j = 0; j < 3; j++) {
                 
                 // card distribution starts from the upper-most card i.e of index 51
-
-                for(let i = 0; i < N; i++) {
+                let pidx = distribution_turn;
+                do {
                         
-                        let idx = (turn + i) % N;
-                        let rot = idx * 360 / N;
+                        let rot = pidx * 360 / N;
                         let radius = 0;
                         let card_rot = 0;
-                        
+                        let card_idx = 51-(N*j+pidx);
                         delay = delay + 1;
 
                         if (j == 0)
@@ -627,10 +629,8 @@ function animate_distribution() {
                                 rot: 720 + card_rot,
                                 onComplete: distribution_complete
                         });
-
-                        card_idx = card_idx - 1;
-                
-                }
+                        pidx = (pidx + 1) % N;
+                }while(pidx!=distribution_turn);
         }
 }
 // Card distribution ...............
@@ -739,13 +739,13 @@ socket.on('game completed',(gamePlayDataServer,win_indexes)=>{
         for(let i=0; i<win_indexes.length ; i++)
                 console.log("game won by : " + win_indexes[i]);
         
-        // may be used for next round animation
-        // for(let i=0; i<win_indexes.length ; i++)
-        //         deck.queue(fold_cards_animation(win_indexes[i]));
         
-        // for next round
-        display_move_ui(-1,-1)
-        refresh_game_ui();
+        // NOTE : may need modifications
+        // only admin has the permission for starting the next round
+        if(current_user.admin)
+                $topbar.appendChild($new_round);
+
+        display_move_ui(-1,-1);
 
 });
 // Gameplay events....
@@ -777,16 +777,20 @@ function display_move_ui(previousTurn,move) {
 
 function refresh_game_ui()
 {
-        
+        deck.unmount($container);
+        deck = Deck();
+        deck.mount($container);
         // change deck and other necessary things to start next round
         // Note : DO not animate cards until the next round is started
 }
 function fold_cards_animation(playerIdx)
 {       
         let N = game_data["users"].length;
+        console.log("Folding cards " + playerIdx)
         for(let j = 0; j < 3; j++)
         {
                 let card_idx = 51-(N*j+playerIdx);
+                console.log(card_idx);
                 deck.cards[card_idx].setSide('back');
                 deck.cards[card_idx].disableDragging();
                 deck.cards[card_idx].animateTo({
@@ -804,3 +808,30 @@ function fold_cards_animation(playerIdx)
 }
 
 // Gameplay UI updates ...............
+
+// New round .........................
+$new_round.addEventListener('click', function () {
+        socket.emit('inform server about new round',current_user.room_id);
+});
+socket.on('start new round', (gamePlayDataServer) => {
+
+        if(current_user.admin)
+                $topbar.removeChild($new_round);
+        
+        gamePlayData = gamePlayDataServer;
+        
+        // remove distribute button from previous distribution_turn
+        if(game_data["users"][distribution_turn].username == current_user.name )
+                $topbar.removeChild($distribute);
+        
+        distribution_turn = (distribution_turn + 1) % game_data["users"].length;
+        
+        // add distribute button for the next user starting the round.
+        if(game_data["users"][distribution_turn].username == current_user.name )
+                $topbar.appendChild($distribute);
+        
+        // perform other necessary UI updates
+        display_move_ui(-1,-1);
+        refresh_game_ui();
+})
+// New round .........................

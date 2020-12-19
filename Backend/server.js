@@ -30,6 +30,7 @@ let clientRooms = {} // client id => room_id
 let players = {}  // client_id(unique across rooms) => index of user in room
 let game_data = {} // game_id => all infromation about that particular room
 let gamePlayData={} // game_id => all information about gameplay of that particular room
+let distribution_turn = {}; // room_id => distribution turn in that room
 
 
 // Gameplay utilities...
@@ -61,18 +62,21 @@ function updateTurn(room_id,move){
 
 function endGame(room_id,win_indexes){
       
+      io.to(room_id).emit('game completed',gamePlayData[room_id],win_indexes);
+
       gamePlayData[room_id]['turn']=-1;
       gamePlayData[room_id]['pot']=0;
       gamePlayData[room_id]['betValue']=2;
       gamePlayData[room_id]['livePlayers']=0;
 
-      for(var i=0;i<gamePlayData[room_id]['user'].length;i++){
+      for(let i=0;i<users[room_id].length;i++)
+      {
             gamePlayData[room_id]['user'][i]['blind']=true;
             gamePlayData[room_id]['user'][i]['live']=true;
+            console.log(gamePlayData[room_id]['user'][i]['currentBet']);
             gamePlayData[room_id]['user'][i]['currentBet']=0;
       }
 
-      io.to(room_id).emit('game completed',gamePlayData[room_id],win_indexes);
 }
 // Gameplay utilities...
 
@@ -93,7 +97,7 @@ io.on('connection',  (client) => {
 
             users[room_id]=[];
             messages[room_id]=[];
-
+            distribution_turn[room_id]=0;
             // Gameplay add object for particular roomId...
             gamePlayData[room_id]={};
             gamePlayData[room_id]['user']={};
@@ -197,60 +201,38 @@ io.on('connection',  (client) => {
             io.to(room_id).emit('start game for all users',users[room_id]);
       });
       
+      client.on('inform server about new round',(room_id) => {
+            distribution_turn[room_id] = (distribution_turn[room_id] + 1) % users[room_id].length;
+            io.to(room_id).emit('start new round',gamePlayData[room_id]);
+      });
       // NOTE : Needs updation for next round.
       client.on('distribute',(cards,sender,room_id)=>{
             
             // turn of the player distrbuting card
-            let turn = 0;
             let N = users[room_id].length;
             
-            /* 
-                  each player will recieve 3 cards,
-                  
-                  turn+1 player recieves cards = 0, N, 2*N 
-                  turn+2 player cards          = 1, N+1, 2*N+1
-                  and so on ...
-                  
-                  This is stored in card_data as 
-
-                  card_data = 
-                  {
-                        0 : [],
-                        1 : [],
-                        ...
-                        N-1 : [],
-                  }
-            */
-
-            let idx = turn;
-            /*
-                  pidx = player index according to users[room_id]
-
-            */
-           game_data[room_id]["distribution"] = {};
+            // pidx = player index according to users[room_id]
+            game_data[room_id]["distribution"] = {};
             for (let pidx = 0; pidx < N; pidx++) {
 
-                  game_data[room_id]["distribution"][idx] = [];
+                  game_data[room_id]["distribution"][pidx] = [];
                   
                   for (let j = 0; j < 3; j++)
-                        game_data[room_id]["distribution"][idx].push({
+                        game_data[room_id]["distribution"][pidx].push({
                               "deck_idx" : 51-(N*j+pidx),
                               "card_idx" : cards[51-(N*j+pidx)].i     
                         });
-                  console.log(game_data[room_id]["distribution"][idx]);
-                  idx = (idx + 1) % N;
+                  console.log("Player index : " + pidx + "\nCards : ")
+                  console.log(game_data[room_id]["distribution"][pidx]);
             }
 
             
             // emit the cards and information about players to all clients
-            game_data[room_id]["cards"] = cards; 
-            
-            console.log("game_data at server");
-            console.log(game_data);
+            game_data[room_id]["cards"] = cards;
 
             // Gameplay Update...
             gamePlayData[room_id]['livePlayers']=gamePlayData[room_id]['totalPlayers']
-            gamePlayData[room_id]['turn']=0;
+            gamePlayData[room_id]['turn']=distribution_turn[room_id];
             // Gameplay Update...
             
             io.to(room_id).emit('distribution done',game_data,gamePlayData[room_id]);
@@ -355,7 +337,7 @@ io.on('connection',  (client) => {
                   else{
                         gamePlayData[room_id]['user'][pidx]['value']-=betValue;
                         gamePlayData[room_id]['pot']+=betValue;
-                        gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue/2;
+                        gamePlayData[room_id]['user'][pidx]['currentBet']+=betValue;
                   }
                   var pidx2;
                   updateTurn(room_id,'request show');
