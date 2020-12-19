@@ -117,6 +117,12 @@ io.on('connection',  (client) => {
             console.log(clientRooms)
             console.log(users)
       });
+
+      client.on('start new game',()=>{
+
+            const room_id=clientRooms[client.id];
+            io.to(room_id).emit('start game for all users');
+      });
     
 });
 

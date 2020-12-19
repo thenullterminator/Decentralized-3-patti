@@ -23,7 +23,8 @@ const socket = io('http://localhost:3000');
 
 const current_user = {
         name: "",
-        room_id: ""
+        room_id: "",
+        admin:false
 };
 
 
@@ -32,9 +33,9 @@ $create_game_div.addEventListener('click', (e) => {
         const name = $name_input_create_game.value;
         current_user.name = name;
 
-
-
         socket.emit('create new game', name);
+        current_user.admin = true;
+        $start_game_div.style.display='block';
 });
 
 $join_game_div.addEventListener('click', (e) => {
@@ -47,6 +48,11 @@ $join_game_div.addEventListener('click', (e) => {
 });
 
 $start_game_div.addEventListener('click', (e) => {
+
+        socket.emit('start new game');
+});
+
+socket.on('start game for all users',()=>{
 
         welcome_deck.unmount($container);
         $start_page.style.display = "none";
@@ -84,10 +90,10 @@ socket.on('new message', (messages) => {
         var msg_list = "";
         for (var i = 0; i < messages.length; i++) {
                 if (i%2 === 0){
-                        msg_list += '<div class="'+'msg-send'+'">' + '<b>' + messages[i].sender + ':' + '</b>' + messages[i].message + '</div>';
+                        msg_list += '<div class="'+'msg-send'+'">' + '<b>' + messages[i].sender + ': ' + '</b>' + messages[i].message + '</div>';
                 }
                 else{
-                        msg_list += '<div class="'+'msg-receive'+'">' + '<b>' + messages[i].sender + ':' + '</b>' + messages[i].message + '</div>';
+                        msg_list += '<div class="'+'msg-receive'+'">' + '<b>' + messages[i].sender + ': ' + '</b>' + messages[i].message + '</div>';
                 }
                 
         }

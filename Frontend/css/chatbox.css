@@ -30,6 +30,8 @@
       width: inherit;
       overflow: auto;
       margin-bottom: 45px;
+      display:flex;
+      flex-direction:column-reverse;
 }
 .chat-text{
       position: fixed;
