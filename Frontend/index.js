@@ -84,7 +84,7 @@ async function request_account() {
         web3.eth.defaultAccount = accounts[0];
         $wallet_ad_display.value = web3.eth.defaultAccount;
         console.log("Metamask Add: " + web3.eth.defaultAccount);
-
+        current_user.account_address =  web3.eth.defaultAccount;
         // Smart Contract ABI .....
 
         game_chips_contract = await web3.eth.contract([
@@ -548,6 +548,7 @@ $connect_portis_button.addEventListener('click', (e) => {
                 web3.eth.defaultAccount = accounts[0];
                 $wallet_ad_display.value = web3.eth.defaultAccount;
                 console.log(" PostisAdd: " + web3.eth.defaultAccount);
+                current_user.account_address =  web3.eth.defaultAccount;
 
                 // Smart Contract ABI .....
 
@@ -1087,8 +1088,13 @@ function web3_required() {
         $show.addEventListener('click', function () {
                 // if it is the user's turn
                 let pidx = gamePlayData['turn'];
+                console.log("show : " +pidx);
+                console.log(game_data);
+                console.log(gamePlayData);
+
                 if (current_user.name == game_data["users"][pidx].username) {
                         let amount = getAmountBet(pidx);
+                        console.log(amount);
                         let action = "request show";
                         transactionHandler(amount, action);
                 }
@@ -1171,6 +1177,8 @@ $start_game_div.addEventListener('click', (e) => {
 });
 
 socket.on('start game for all users', (users) => {
+
+        socket.emit("record account address",current_user.room_id,current_user.client_id,current_user.account_address);
 
         welcome_deck.unmount($container);
         $start_page.style.display = "none";
@@ -1836,10 +1844,10 @@ function animate_distribution() {
 // Card distribution ...............
 
 // View cards .........................
-socket.on("view own cards", (data) => {
+socket.on("view own cards", (data,gamePlayDataServer) => {
 
         console.log("View request")
-
+        gamePlayData = gamePlayDataServer;
         // modifying cards 
         var num_cards = data.length;
         for (var j = 0; j < data.length; j++) {

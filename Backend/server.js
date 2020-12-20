@@ -13,6 +13,37 @@ const io = require('socket.io')(http,{ // creating an io socket from the http se
       }
 });
 
+// web3 setup ......................................................
+
+const Web3 = require('web3')
+const HDWalletProvider = require('@truffle/hdwallet-provider')
+process.env.PRIVATE_KEY = "c08a5cf709cd10a008ec9b167e86e1b2a3e484947a3faef22de27a11cdae8173";
+process.env.ACCOUNT = "0x8cBe9bCbeb8608AedAa7b45a4Bb6Af1c055bb893";
+process.env.RPC_URL= "https://rpc-mumbai.maticvigil.com/v1/f089913a68315a36fbd0951f9d05c0510b10e859"
+// WEB3 CONFIG
+const web3 = new Web3(new HDWalletProvider(process.env.PRIVATE_KEY, process.env.RPC_URL));
+
+const CONTRACT_ABI = [{"constant":!1,"inputs":[{"internalType":"uint256","name":"numberOfTokens","type":"uint256"}],"name":"buyTokens","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":!0,"stateMutability":"payable","type":"function"},{"constant":!1,"inputs":[],"name":"sendContractAmountToOwner","outputs":[],"payable":!0,"stateMutability":"payable","type":"function"},{"constant":!1,"inputs":[{"internalType":"string","name":"pot","type":"string"},{"internalType":"uint256","name":"numberOfTokens","type":"uint256"},{"internalType":"string","name":"clientId","type":"string"},{"internalType":"string","name":"viaEvent","type":"string"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":!1,"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"initialSupply","type":"uint256"},{"internalType":"uint256","name":"pricePerToken","type":"uint256"}],"payable":!1,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":!1,"inputs":[{"indexed":!0,"internalType":"address","name":"_from","type":"address"},{"indexed":!1,"internalType":"address","name":"_to","type":"address"},{"indexed":!1,"internalType":"uint256","name":"_numberOfTokens","type":"uint256"}],"name":"Transfered","type":"event"},{"anonymous":!1,"inputs":[{"indexed":!0,"internalType":"address","name":"_from","type":"address"},{"indexed":!1,"internalType":"string","name":"_to","type":"string"},{"indexed":!1,"internalType":"string","name":"_clientId","type":"string"},{"indexed":!1,"internalType":"string","name":"_viaEvent","type":"string"},{"indexed":!1,"internalType":"uint256","name":"_numberOfTokens","type":"uint256"}],"name":"TransferedToPot","type":"event"},{"constant":!1,"inputs":[{"internalType":"string","name":"pot","type":"string"},{"internalType":"address","name":"to","type":"address"}],"name":"winnerTransfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":!1,"stateMutability":"nonpayable","type":"function"},{"constant":!1,"inputs":[{"internalType":"string","name":"pot","type":"string"},{"internalType":"address","name":"to1","type":"address"},{"internalType":"address","name":"to2","type":"address"}],"name":"winnerTransferTie","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":!1,"stateMutability":"nonpayable","type":"function"},{"constant":!0,"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":!1,"stateMutability":"view","type":"function"},{"constant":!0,"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"balanceOfPot","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":!1,"stateMutability":"view","type":"function"},{"constant":!0,"inputs":[],"name":"count","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":!1,"stateMutability":"view","type":"function"},{"constant":!0,"inputs":[],"name":"etherAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":!1,"stateMutability":"view","type":"function"},{"constant":!0,"inputs":[],"name":"getBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":!1,"stateMutability":"view","type":"function"},{"constant":!0,"inputs":[{"internalType":"address","name":"id","type":"address"}],"name":"getBalanceOther","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":!1,"stateMutability":"view","type":"function"},{"constant":!0,"inputs":[{"internalType":"string","name":"id","type":"string"}],"name":"getBalancePot","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":!1,"stateMutability":"view","type":"function"},{"constant":!0,"inputs":[],"name":"getContractBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":!1,"stateMutability":"view","type":"function"},{"constant":!0,"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":!1,"stateMutability":"view","type":"function"},{"constant":!0,"inputs":[],"name":"standard","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":!1,"stateMutability":"view","type":"function"},{"constant":!0,"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":!1,"stateMutability":"view","type":"function"},{"constant":!0,"inputs":[],"name":"tokenPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":!1,"stateMutability":"view","type":"function"}];
+
+const CONTRACT_ADDRESS = "0x681f6aF0c05e1a667FDd336d5dE6f14CFDa2b3fd";
+
+var game_chips_contract = new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDRESS);
+
+async function request_account_balance()
+{
+      let result = await game_chips_contract.methods.getBalanceOther(process.env.ACCOUNT);
+      
+      // let result = await game_chips_contract.methods.getBalance().call({}, function(e, r){
+      //       console.log(r);
+      // });
+      console.log(result);
+
+      let balance = await game_chips_contract.methods.getBalanceOther(process.env.ACCOUNT).call();
+      console.log(balance);
+}
+request_account_balance()
+// web3 setup ......................................................
+
 function makeid(length) { // utility function to create a new room id
 
       var result           = '';
@@ -31,6 +62,7 @@ let players = {}  // client_id(unique across rooms) => index of user in room
 let game_data = {} // game_id => all infromation about that particular room
 let gamePlayData={} // game_id => all information about gameplay of that particular room
 let distribution_turn = {}; // room_id => distribution turn in that room
+let address_records = {};
 
 
 // Gameplay utilities...
@@ -62,7 +94,42 @@ function updateTurn(room_id,move){
 
 function endGame(room_id,win_indexes){
       
-      io.to(room_id).emit('game completed',gamePlayData[room_id],win_indexes);
+      if (win_indexes.length == 1) {
+            
+            let cid = users[room_id][win_indexes[0]].client_id;
+            let add = address_records[room_id][cid];
+
+            console.log("Sending to : " + add);
+            game_chips_contract.methods.winnerTransfer(
+                  room_id, add).
+                  send({
+                        from: process.env.ACCOUNT
+                  }).on('receipt', function (confirmationNumber, receipt) {
+                        console.log('confirmed transaction');
+                        
+                        io.to(room_id).emit('game completed',gamePlayData[room_id],win_indexes);
+
+                  })
+      }
+      else {
+            let cid1 = users[room_id][win_indexes[0]].client_id; 
+            let cid2 = users[room_id][win_indexes[1]].client_id;
+
+            let add1 = address_records[room_id][cid1];
+            let add2 = address_records[room_id][cid2];
+
+            console.log("Sending to : + " + add1 + " : " + add2);
+            game_chips_contract.methods.winnerTransferTie(
+                  room_id, add1, add2).
+                  send({
+                        from: process.env.ACCOUNT
+                  }).on('confirmation', function (confirmationNumber, receipt) {
+                        console.log('confirmation reciept');
+                        console.log(receipt);
+
+                        io.to(room_id).emit('game completed',gamePlayData[room_id],win_indexes);
+                  })
+      }
 
       gamePlayData[room_id]['turn']=-1;
       gamePlayData[room_id]['pot']=0;
@@ -197,6 +264,7 @@ io.on('connection',  (client) => {
             
             // set up game_data and players
             game_data[room_id] = {};
+            address_records[room_id] = {};
 
             for(let i=0; i<users[room_id].length; i++) {
                  players[users[room_id][i].client_id] = i;
@@ -245,7 +313,7 @@ io.on('connection',  (client) => {
       client.on('request own card data',(room_id,client_id) => {
             let pidx = players[client_id];
             gamePlayData[room_id]['user'][pidx]['blind']=false;
-            client.emit("view own cards",game_data[room_id]["distribution"][pidx]);
+            client.emit("view own cards",game_data[room_id]["distribution"][pidx],gamePlayData[room_id]);
       })
 
       // Gameplay options....
@@ -468,6 +536,12 @@ io.on('connection',  (client) => {
             }
       })
       // Fold...
+
+      // Add client account address to our records
+      client.on("record account address",(room_id,client_id,account_address) => {
+            address_records[room_id][client_id] = account_address;
+      });
+
       // Gameplay options....
 });
 
