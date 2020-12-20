@@ -540,6 +540,18 @@ io.on('connection',  (client) => {
       // Add client account address to our records
       client.on("record account address",(room_id,client_id,account_address) => {
             address_records[room_id][client_id] = account_address;
+
+            let pidx = players[client_id];
+            game_chips_contract.methods.getBalanceOther(account_address).call(function(error, result){
+                  
+                  if(error)
+                        console.log("error in fetching balance " + error);
+                  else
+                  {
+                        gamePlayData[room_id]['user'][pidx]['value'] = result;
+                        console.log("Init balance : " + result + " of " + account_address);
+                  }
+            });
       });
 
       // Gameplay options....
