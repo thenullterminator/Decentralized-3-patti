@@ -30,6 +30,8 @@ contract Token{
     event TransferedToPot(
         address indexed _from,
         string _to,
+        string _clientId,
+        string _viaEvent,
         uint256 _numberOfTokens
     );
    
@@ -60,7 +62,7 @@ contract Token{
     }
 
 
-    function transfer(string memory pot, uint256 numberOfTokens) public returns (bool){
+    function transfer(string memory pot, uint256 numberOfTokens,string memory clientId,string memory viaEvent) public returns (bool){
         
         require(balanceOf[msg.sender] >= numberOfTokens,"Insufficient balance");
 
@@ -68,27 +70,35 @@ contract Token{
     
         balanceOfPot[pot] += numberOfTokens;
 
-        emit TransferedToPot(msg.sender, pot, numberOfTokens);
+        emit TransferedToPot(msg.sender, pot,clientId,viaEvent,numberOfTokens);
 
         return true;
     }
 
     
     function winnerTransfer(string memory pot,address to) public returns (bool){
+        
         uint256 numberOfTokens=balanceOfPot[pot];
+        
         balanceOfPot[pot]-=numberOfTokens;
+        
         balanceOf[to]+=numberOfTokens;
 
         return true;
     }
 
     function winnerTransferTie(string memory pot,address to1,address to2) public returns (bool){
+        
         uint256 numberOfTokens=balanceOfPot[pot]/2;
+        
         balanceOfPot[pot]-=numberOfTokens;
+        
         balanceOf[to1]+=numberOfTokens;
 
         balanceOfPot[pot]-=numberOfTokens;
+        
         balanceOf[to2]+=numberOfTokens;
+        
         return true;
     }
 
