@@ -1,4 +1,4 @@
-# Multiplayer-Card-Game
+# Decentralized 3patti
 
 <!-- TABLE OF CONTENTS -->
 <details open="open">
