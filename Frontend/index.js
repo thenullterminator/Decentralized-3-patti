@@ -1694,15 +1694,15 @@ $sideShowNo.addEventListener('click', function () {
 // side show response...
 
 // request show...
-$show.addEventListener('click', function () {
-        // if it is the user's turn
-        let pidx = gamePlayData['turn'];
-        if (current_user.name == game_data["users"][pidx].username) {
-                let amount = getAmountBet(pidx);
-                let action = "request show";
-                transactionHandler(amount, action);
-        }
-})
+// $show.addEventListener('click', function () {
+//         // if it is the user's turn
+//         let pidx = gamePlayData['turn'];
+//         if (current_user.name == game_data["users"][pidx].username) {
+//                 let amount = getAmountBet(pidx);
+//                 let action = "request show";
+//                 transactionHandler(amount, action);
+//         }
+// })
 // request show...
 
 // fold...
