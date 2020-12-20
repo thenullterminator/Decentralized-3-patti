@@ -29,9 +29,6 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-
 ***3 patti ? but why ?***
 - Because before the pandemic 3-patti used to be one of our favourite card games :confused: 
 - And there is no web-based multi-player 3-patti application online currently( guess everyone likes poker after all).
