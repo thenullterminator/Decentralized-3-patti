@@ -77,6 +77,8 @@ contract Token{
 
     
     function winnerTransfer(string memory pot,address to) public returns (bool){
+    
+        require(msg.sender == owner);
         
         uint256 numberOfTokens=balanceOfPot[pot];
         
@@ -88,6 +90,8 @@ contract Token{
     }
 
     function winnerTransferTie(string memory pot,address to1,address to2) public returns (bool){
+        
+        require(msg.sender == owner);
         
         uint256 numberOfTokens=balanceOfPot[pot]/2;
         
