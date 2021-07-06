@@ -100,5 +100,7 @@ Contributions are what make the open source community such an amazing place to b
 
 Deployed At: https://tpatti-frontend.herokuapp.com/
 
+Project Walkthrough: https://www.youtube.com/watch?v=4JLfwC4r14Y
+
 
 
